@@ -1,0 +1,130 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: RB Duplicate Post\n"
+"POT-Creation-Date: 2025-12-18 12:21+0100\n"
+"PO-Revision-Date: 2025-12-18 12:32+0100\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: pl_PL\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=3; plural=(n==1 ? 0 : n%10>=2 && n%10<=4 && (n%100<12 || n%100>14) ? 1 : 2);\n"
+"X-Generator: Poedit 3.8\n"
+"X-Poedit-Basepath: ..\n"
+"X-Poedit-SourceCharset: UTF-8\n"
+"X-Poedit-KeywordsList: __;_e\n"
+"X-Poedit-SearchPath-0: .\n"
+"X-Poedit-SearchPathExcluded-0: node_modules\n"
+"X-Poedit-SearchPathExcluded-1: .git\n"
+"X-Poedit-SearchPathExcluded-2: .idea\n"
+"X-Poedit-SearchPathExcluded-3: .vscode\n"
+"X-Poedit-SearchPathExcluded-4: .phpintel\n"
+"X-Poedit-SearchPathExcluded-5: vendor\n"
+"X-Poedit-SearchPathExcluded-6: *.js\n"
+"X-Poedit-SearchPathExcluded-7: unused code\n"
+"X-Poedit-SearchPathExcluded-8: dialog_js\n"
+"X-Poedit-SearchPathExcluded-9: options_js\n"
+"X-Poedit-SearchPathExcluded-10: dist\n"
+
+#: src/AdminBarMenu.php:53 src/ButtonBulkCopy.php:138
+msgid "Copy"
+msgstr "Kopiuj"
+
+#: src/AdminOptionsPage.php:71
+msgid "RB Plugins"
+msgstr "RB Plugins"
+
+#: src/AdminOptionsPage.php:76
+msgid "Duplicate Post"
+msgstr "Duplikat postu"
+
+#: src/AdminOptionsPage.php:85
+msgid "RB Duplicate Post"
+msgstr "RB Duplikat postu"
+
+#: src/PluginList.php:28
+msgid "Settings"
+msgstr "Ustawienia"
+
+#: src/ProfileType.php:49
+msgid "Profile options for duplicate post"
+msgstr "Opcje profilu dla duplikatu posta "
+
+#: src/restapi/REST_DuplicatePost_Controller.php:36
+msgid "RB Duplicate Post ID."
+msgstr "RB Duplikat postu ID."
+
+#: src/restapi/REST_DuplicatePost_Controller.php:54
+#: src/restapi/REST_Profile_Options_Controller.php:54
+#: src/restapi/REST_Profile_Options_Controller.php:67
+msgid "RB Duplicate Post Profile ID."
+msgstr "RB Duplikat postu profil ID."
+
+#: src/restapi/REST_DuplicatePost_Controller.php:60
+msgid "RB Duplicate Post IDs."
+msgstr "RB Duplikat postu profil IDs."
+
+#: src/restapi/REST_DuplicatePost_Controller.php:158
+msgid "Sorry, you cannot access."
+msgstr "Przepraszamy, nie masz dostępu."
+
+#: src/restapi/REST_General_Options_Controller.php:112
+#: src/restapi/REST_Profile_Options_Controller.php:228
+msgid "Invalid option id."
+msgstr "Nieprawidłowy identyfikator opcji."
+
+#: src/restapi/REST_General_Options_Controller.php:158
+#: src/restapi/REST_Profile_Options_Controller.php:304
+msgid "Empty options."
+msgstr "Puste opcje."
+
+#: src/restapi/REST_General_Options_Controller.php:225
+#: src/restapi/REST_General_Options_Controller.php:245
+#: src/restapi/REST_Profile_Options_Controller.php:416
+#: src/restapi/REST_Profile_Options_Controller.php:437
+msgid "Sorry, you cannot list resources."
+msgstr "Przepraszamy, nie masz dostępu."
+
+#: src/restapi/REST_General_Options_Controller.php:266
+#: src/restapi/REST_Profile_Options_Controller.php:458
+msgid "Sorry, you cannot edit this resource."
+msgstr "Przepraszamy, nie możesz edytować."
+
+#: src/restapi/REST_Profile_Controller.php:54
+msgid "RB Duplicate Profile Title."
+msgstr "RB Duplicate Profile Title."
+
+#: src/restapi/REST_Profile_Controller.php:77
+#: src/restapi/REST_Profile_Controller.php:90
+#: src/restapi/REST_Profile_Controller.php:103
+#: src/restapi/REST_Profile_Options_Controller.php:94
+#: src/restapi/REST_Profile_Options_Controller.php:114
+msgid "RB Duplicate Profile ID."
+msgstr "RB Duplicate Profile ID."
+
+#: src/restapi/REST_Profile_Controller.php:131
+#: src/restapi/REST_Profile_Controller.php:146
+msgid "Invalid profile id."
+msgstr "Nieprawidłowy identyfikator profilu."
+
+#: src/restapi/REST_Profile_Controller.php:171
+msgid "Failed to create profile."
+msgstr "Nie udało się utworzyć profilu."
+
+#: src/restapi/REST_Profile_Controller.php:232
+msgid "Not found profile."
+msgstr "Nie znaleziono profilu."
+
+#: src/restapi/REST_Profile_Controller.php:242
+msgid "Failed to delete profile."
+msgstr "Nie udało się usunąć profilu."
+
+#: src/restapi/REST_Profile_Options_Controller.php:88
+#: src/restapi/REST_Profile_Options_Controller.php:108
+msgid "RB Duplicate Profile Option id."
+msgstr "RB Duplicate Profile Option id."
+
+#: src/restapi/REST_Profile_Options_Controller.php:250
+msgid "Empty option value."
+msgstr "Pusta wartość opcji."
