@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -19,6 +19,7 @@ use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\Notification;
 use rbDuplicatePost\User;
 use rbDuplicatePost\Utils;
+use rbDuplicatePost\Helpers\PostTypes;
 
 /**
  * Adds a "Copy" link to the row actions under post and page titles
@@ -36,15 +37,13 @@ class ButtonBulkCopy
             return;
         }
     
-        add_action('init', array( self::class, 'hooks' ));
+        add_action('init', array( self::class, 'hooks' ), Utils::getMaxInteger() );
     }
 
     /**
      * Register WordPress hooks (only in admin area).
-     *
-     * @return void
      */
-    public static function hooks(): void
+    public static function hooks()
     {
         if ( !User::isAllowForCurrentUser() ) {
             return;
@@ -56,17 +55,19 @@ class ButtonBulkCopy
 
         add_action( 'admin_enqueue_scripts', array(self::class, 'enqueue_admin_scripts_bulk' ) );
 
-        add_filter( 'bulk_actions-edit-post', array(self::class, 'add_bulk_copy_actions') );
-        add_filter( 'bulk_actions-edit-page', array(self::class, 'add_bulk_copy_actions') );
+        $post_types =  array_keys( PostTypes::get_all_types() );
 
-        add_action( 'handle_bulk_actions-edit-post',  array(self::class, 'bulk_copy_action_handler'), 10, 3 );
-        add_action( 'handle_bulk_actions-edit-page',  array(self::class, 'bulk_copy_action_handler'), 10, 3 );
+        foreach ( $post_types as $post_type ) {
+            if( !PostTypes::is_type_support($post_type) ){
+                continue;
+            }
+            add_filter( 'bulk_actions-edit-'.$post_type, array(self::class, 'add_bulk_copy_actions') );
+            add_action( 'handle_bulk_actions-edit-'.$post_type,  array(self::class, 'bulk_copy_action_handler'), 10, 3 );
+        }
     }
 
     /** 
      * Enqueue scripts
-     * 
-     * @return void
      */
     public static function enqueue_admin_scripts_bulk() {
         wp_enqueue_script(

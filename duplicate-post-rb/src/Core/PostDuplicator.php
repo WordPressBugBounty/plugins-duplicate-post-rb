@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -18,12 +18,26 @@ use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\ProfileOptions;
 use rbDuplicatePost\OptionsManager;
 use rbDuplicatePost\PostProcessor;
+use rbDuplicatePost\Helpers\PostTypes;
+use rbDuplicatePost\Log\Logger;
+use rbDuplicatePost\Log\Actions;
 
 class PostDuplicator implements DuplicatorInterface {
 
-    //TODO: need to check if post type is supported
     public function supports( string $type ): bool {
-        return true;
+        return PostTypes::is_type_support( $type );
+    }
+
+    // return 1 if allowed, 0 if not allowed, -1 if not special type
+    public function is_allowed_special_post(int $id): int {
+        if(!$id){
+            return -1;
+        }
+        $type = get_post_type($id); 
+        if(!$type){
+            return -1;
+        }
+        return PostTypes::is_allowed_special_type($type);
     }
 
     public function duplicate( int $originalId, int $profile_id = 0 ): int {
@@ -47,6 +61,10 @@ class PostDuplicator implements DuplicatorInterface {
         $options_manager = new OptionsManager(  );
         $processor       = new PostProcessor( $options_manager );
 
-        return $processor->processPost( $originalId, $profile_id );
+        $new_id = $processor->processPost( $originalId, $profile_id );
+
+        Logger::add(  Actions::COPY, $originalId, $new_id );
+
+        return $new_id;
     }
 }

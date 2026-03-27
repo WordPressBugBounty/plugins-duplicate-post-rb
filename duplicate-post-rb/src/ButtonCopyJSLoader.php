@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -48,6 +48,7 @@ class ButtonCopyJSLoader {
         $notificationData = array(
             'duplicateSuccess'=>0,
             'duplicateFail'=>0,
+            'duplicateProRequery'=>0,
         );
 
         $notification = new Notification();
@@ -61,7 +62,11 @@ class ButtonCopyJSLoader {
                     if( isset($value['success']) && $value['success'] ) {
                         ++$notificationData['duplicateSuccess'] ;
                     } else {
-                        ++$notificationData['duplicateFail'] ;
+                        if($value['code'] == 'pro_version_not_active') {
+                            ++$notificationData['duplicateProRequery'] ;
+                        } else {
+                            ++$notificationData['duplicateFail'] ;
+                        }
                     }
                 }
             }
@@ -71,8 +76,13 @@ class ButtonCopyJSLoader {
     }
 
     static function getJSCode($blockPro = false, $notificationShow = false, $notificationData = array(['duplicateSuccess'=>0,'duplicateFail'=>0])) {
+
         $duplicateSuccess = isset($notificationData['duplicateSuccess']) ? (int) $notificationData['duplicateSuccess']: 0;
+
         $duplicateFail = isset($notificationData['duplicateFail']) ? (int) $notificationData['duplicateFail']: 0;
+
+        $duplicateProRequery = isset($notificationData['duplicateProRequery']) ? (int) $notificationData['duplicateProRequery']: 0;
+
         $jsCode   = 'window["rb_duplicate_post_dialog_cfg"] = {'
         . 'rb_duplicate_post_dialog_url: "' . RB_DUPLICATE_POST_URL . 'assets/js/dialog/",'
         . 'imagesUrl: "' . RB_DUPLICATE_POST_URL . 'assets/js/dialog/",'
@@ -83,57 +93,49 @@ class ButtonCopyJSLoader {
             . 'messageShow: ' . ( $notificationShow ? 'true' : 'false' ) . ','
             . 'duplicateSuccess: ' . $duplicateSuccess. ','
             . 'duplicateFail: ' . $duplicateFail . ','
+            . 'duplicateProRequery: ' . $duplicateProRequery . ','
+            . 'settingsUrl: "' . esc_url( Utils::getSettingsPageUrl() ) . '",'
             . '};';
+
         $jsCode .= "
+const toPositiveInt = (value)  =>{ const num = Number(value); return Number.isInteger(num) && num > 0 ? num : 0; }
+const handleRbDuplicatePostButton = (event)=>{
+        if (typeof window.rb_duplicate_post_dialog !== 'function') {
+            console.warn('Function rb_duplicate_post_dialog not found.');
+            return;
+        }
+
+        if(!event || !event.currentTarget){
+            return;
+        }
+        
+        const el = event.currentTarget;
+
+        const postId = toPositiveInt(el.getAttribute('data-post-id'));
+        if ( postId <= 0) {
+            console.warn('Incorrect post ID');
+            return;
+        }
+            
+        const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
+        const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
+        const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
+
+        console.log('no_refresh, profileId, without_confirmation', no_refresh, profileId, withoutConfirmation);
+        window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh, profileId , withoutConfirmation);
+}
+const handleRbDuplicatePostMouse = (event) => {
+    if (event.type === 'click' && event.button !== 0) return;
+    if (event.type === 'mouseup' && event.button !== 1) return;
+    event.preventDefault();
+    event.stopPropagation();
+    handleRbDuplicatePostButton(event);
+};
 document.addEventListener('DOMContentLoaded',  ()=> {
     const buttons = document.querySelectorAll('.rb-duplicate-post-copy-button');
     buttons.forEach( (button)=> {
-        button.addEventListener('mouseup',   (event)=>{
-            event.stopPropagation();
-            event.preventDefault();
-            if( event.button==0 || event.button==1 || event.button==2 ){
-
-                if (typeof window.rb_duplicate_post_dialog !== 'function') {
-                    console.warn('Function rb_duplicate_post_dialog not found.');
-                    return;
-                }
-
-                if(!event.currentTarget){
-                    return;
-                }
-
-                const postId = event.currentTarget.getAttribute('data-post-id');
-                if (!postId || !/^\\d+$/.test(postId)) {
-                    console.warn('Incorrect post ID:', postId);
-                    return;
-                }
-                const no_refresh = event.currentTarget.getAttribute('data-no-refresh') ? 1 : 0 ;
-                console.log('no_refresh', no_refresh);
-                window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh);
-            }
-        });
-        button.addEventListener('click',   (event)=>{
-            event.stopPropagation();
-            event.preventDefault();
-
-            if (typeof window.rb_duplicate_post_dialog !== 'function') {
-                console.warn('Function rb_duplicate_post_dialog not found.');
-                return;
-            }
-
-            if(!event.currentTarget){
-                return;
-            }
-
-            const postId = event.currentTarget.getAttribute('data-post-id');
-            if (!postId || !/^\\d+$/.test(postId)) {
-                console.warn('Incorrect post ID:', postId);
-                return;
-            }
-            const no_refresh = event.currentTarget.getAttribute('data-no-refresh') ? 1 : 0 ;
-                
-            window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh);
-        });
+        button.addEventListener('click',     handleRbDuplicatePostMouse );
+        button.addEventListener('mouseup',   handleRbDuplicatePostMouse );
     });
 });
 ";
@@ -149,10 +151,8 @@ document.addEventListener('DOMContentLoaded',  ()=> {
 
     /**
      * Enqueue admin JS and localize variables for authorized users.
-     *
-     * @return void
      */
-    public function enqueue_admin_scripts(): void {
+    public function enqueue_admin_scripts() {
 
         if ( ! self::isJsCodeNeed() ) {
             return;

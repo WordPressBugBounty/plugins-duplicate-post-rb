@@ -98,7 +98,6 @@ class BlogPostContext {
      * Restores the previous blog only if we are in Multisite and a switch occurred.
      *
      * @param bool $did_switch
-     * @return void
      */
     public static function maybe_restore_blog( $did_switch ) {
         if ( $did_switch && is_multisite() ) {
@@ -135,6 +134,20 @@ class BlogPostContext {
         self::maybe_restore_blog( $did_switch );
         return $thumb_id ? (int) $thumb_id : null;
     }
+
+
+    public function get_post_type() {
+        if( $this->empty_post_id ) {
+            return null;
+        }
+        $did_switch = $this->maybe_switch_to_blog();
+        $type = get_post_type( $this->post_id );
+        self::maybe_restore_blog( $did_switch );
+        return $type ? $type : null;
+    }
+
+
+    
 
     /**
      * Retrieves all child attachments (post_parent = this post).

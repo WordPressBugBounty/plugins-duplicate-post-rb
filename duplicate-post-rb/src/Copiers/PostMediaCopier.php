@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -11,13 +11,13 @@
 
 namespace rbDuplicatePost\Copiers;
 
+defined( 'WPINC' ) || exit;
+
 use rbDuplicatePost\Contexts\BlogPostContext;
 use rbDuplicatePost\Contexts\CopyOperationContext;
 
 /**
  * Copies media associated with a WordPress post.
- * Requires CopyOperationContext for all operations.
- * Fully Multisite-safe and WordPress.com compatible (no ABSPATH).
  */
 class PostMediaCopier {
 
@@ -196,7 +196,6 @@ class PostMediaCopier {
             require_once ABSPATH . 'wp-admin/includes/image.php';
         }
 
-        // Generate thumbnails and metadata (safe without ABSPATH)
         $meta = \wp_generate_attachment_metadata( $new_id, $new_filepath );
         \wp_update_attachment_metadata( $new_id, $meta );
 

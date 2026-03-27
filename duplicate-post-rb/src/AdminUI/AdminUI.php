@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -17,7 +17,7 @@ class AdminUI
 {
     public function __construct()
     {
-        new \rbDuplicatePost\AdminUI\ButtonCopy();
+        new \rbDuplicatePost\AdminUI\RowActionCopyButton();
         new \rbDuplicatePost\AdminUI\ClassicEditorButtonCopy();
         new \rbDuplicatePost\AdminUI\GutenbergEditorButtonCopy();
         new \rbDuplicatePost\AdminUI\ButtonBulkCopy();

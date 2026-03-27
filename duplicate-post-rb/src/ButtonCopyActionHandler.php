@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -36,20 +36,16 @@ class ButtonCopyActionHandler
 
     /**
      * Register the WordPress admin action hook.
-     *
-     * @return void
      */
-    protected function init_hooks(): void
+    protected function init_hooks()
     {
-        add_action('admin_action_' . Constants::COPY_ACTION_NAME, [$this, 'handle']);
+        add_action('admin_action_' . Constants::COPY_ACTION_NAME, array($this, 'handle'));
     }
 
     /**
      * Handles the duplication action.
-     *
-     * @return void
      */
-    public function handle(): void
+    public function handle()
     {
         if( !isset($_GET['_nonce']) || !$_GET['_nonce']  ) {
             wp_die('Invalid security token.');

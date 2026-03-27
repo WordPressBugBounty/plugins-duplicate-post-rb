@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -15,6 +15,7 @@ defined('WPINC') || exit;
 
 use rbDuplicatePost\Constants;
 use rbDuplicatePost\User;
+use rbDuplicatePost\Helpers\PostTypes;
 
 /**
  * Adds a "Copy" link to the row actions under post and page titles
@@ -37,10 +38,8 @@ class ClassicEditorButtonCopy
 
     /**
      * Register WordPress hooks (only in admin area).
-     *
-     * @return void
      */
-    public static function hooks(): void
+    public static function hooks()
     {
          if ( !User::isAllowForCurrentUser() ) {
             return;
@@ -51,8 +50,7 @@ class ClassicEditorButtonCopy
         }
         
         add_action( 'post_submitbox_misc_actions', array(self::class,  'add_copy_action' ) ); 
-        //post_submitbox_misc_actions
-        //post_submitbox_start
+        // other hooks  post_submitbox_misc_actions post_submitbox_start
     }
 
     /**
@@ -63,18 +61,16 @@ class ClassicEditorButtonCopy
      */
     protected static function is_supported_post_type(\WP_Post $post): bool
     {
-        // Allow other developers to modify supported post types via filter
-        $supported = apply_filters('rb_duplicate_post_supported_types', Constants::ALLOWED_POST_TYPES);
-        return in_array($post->post_type, (array) $supported, true);
+        $supported = PostTypes::get_all_types();
+        return in_array($post->post_type, $supported);
     }
 
     /**
      * Add the "Copy" link to the editor.
      *
      * @param \WP_Post $post
-     * @return void
      */
-    public static function add_copy_action( $post ) : void
+    public static function add_copy_action( $post )
     {
         global $pagenow;
         if($pagenow && $pagenow=='post-new.php'){
@@ -86,7 +82,11 @@ class ClassicEditorButtonCopy
         }
 
         // Permission and type checks
-        if (!User::canEditPost($post->ID) || !self::is_supported_post_type($post)) {
+        if ( !User::canEditPost($post->ID) ) {
+            return ;
+        }
+        //  type checks
+        if ( !self::is_supported_post_type($post) ) {
             return ;
         }
 

@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,7 @@ defined( 'WPINC' ) || exit;
 use rbDuplicatePost\Constants;
 use rbDuplicatePost\ProfileOptionsConfig;
 use rbDuplicatePost\IDsParser;
+use rbDuplicatePost\Helpers\PostTypes;
 
 /**
  * REST API Validation Options controller class.
@@ -74,11 +75,13 @@ class Validations {
 
         $ids = IDsParser::parse( $param );
 
+        $types = array_keys( PostTypes::get_all_types(  ) );
+
         $args = array(
             'fields'      => 'ids',
             'include'     => $ids,
             'post_status' => Constants::ALLOWED_POST_STATUSES,
-            'post_type' => ['post', 'page'],
+            'post_type' =>  $types,
             'ignore_sticky_posts'=>false
         );
         $posts = get_posts( $args );
@@ -106,6 +109,8 @@ class Validations {
     public static function validate_option_id( $param, $request, $key ) {
         return $param && array_key_exists( $param, ProfileOptionsConfig::getOptions() );
     }
+
+    
 
     public static function validate_profile_title( $param, $request, $key ) {
 
@@ -194,6 +199,9 @@ class Validations {
             //     }
             //     break;
 
+            case 'multiline_string':
+                $value = self::sanitize_multiline_text($value);
+                break;
             case 'string':
             default:
                 $value = sanitize_text_field($value);
@@ -207,6 +215,26 @@ class Validations {
         }
 
         return $value;
+    }
+
+    private static function sanitize_multiline_text($input) {
+        if (!is_string($input)) {
+            return '';
+        }
+
+        // Normalize line breaks (\r\n, \r → \n)
+        $input = str_replace(["\r\n", "\r"], "\n", $input);
+
+        // Split into lines
+        $lines = explode("\n", $input);
+
+        //  Sanitize each line
+        $sanitized_lines = array_map(function($line) {
+            return sanitize_text_field($line);
+        }, $lines);
+
+        //  Join back
+        return implode("\n", $sanitized_lines);
     }
 
 }

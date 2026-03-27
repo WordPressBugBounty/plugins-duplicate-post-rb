@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -101,7 +101,12 @@ class Profile
         }
 
         $post = get_post($profile_id);
-        if (null == $post || get_class($post) !== 'WP_Post' || RB_DUPLICATE_POST_PROFILE_TYPE_POST !== $post->post_type) {
+
+        if (!$post instanceof \WP_Post) {
+            return false;
+        }
+
+        if ($post->post_type !== RB_DUPLICATE_POST_PROFILE_TYPE_POST) {
             return false;
         }
 
@@ -134,7 +139,7 @@ class Profile
      * @param integer $limit
      * @return array
      */
-    public static function getProfiles($limit = -1, $fields = 'ids') 
+    public static function getProfiles(int $limit = -1, $fields = 'ids') : array 
     {
         $arg = [
             'post_type'   => RB_DUPLICATE_POST_PROFILE_TYPE_POST,
@@ -204,7 +209,7 @@ class Profile
         $profile_id = absint($profile_id);
         $title      = trim(sanitize_text_field($title));
 
-        if (! self::isUserCanEditExitsProfile($profile_id)) {
+        if (! self::isUserCanEditExistsProfile($profile_id)) {
             return false;
         }
 
@@ -230,7 +235,7 @@ class Profile
     {
         $profile_id = absint($profile_id);
 
-        if (! self::isUserCanEditExitsProfile($profile_id)) {
+        if (! self::isUserCanEditExistsProfile($profile_id)) {
             return false;
         }
 
@@ -267,7 +272,7 @@ class Profile
      * @param integer $profile_id
      * @return boolean
      */
-    public static function isUserCanEditExitsProfile($profile_id = 0)
+    public static function isUserCanEditExistsProfile($profile_id = 0)
     {
         if (! self::isUserCanEditProfile()) {
             return false;

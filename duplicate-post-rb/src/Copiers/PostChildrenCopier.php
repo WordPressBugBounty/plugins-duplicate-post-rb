@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -26,7 +26,7 @@ class PostChildrenCopier {
     /**
      * Post types to ignore when copying children.
      */
-    const IGNORE_TYPES = array('acf-field', 'attachment', 'revision');
+    const IGNORE_TYPES = array( 'attachment', 'revision'); //'acf-field',
 
     /**
      * Copies all child posts from source to target post.
@@ -135,6 +135,7 @@ class PostChildrenCopier {
      * @return bool
      */
     public static function update_child_parent( $child_id, $new_parent_id ) {
+        global $wpdb;
         $post = \get_post( $child_id );
         if ( ! $post ) {
             return false;
@@ -147,12 +148,22 @@ class PostChildrenCopier {
             }
         }
 
-        $result = \wp_update_post( array(
-            'ID'          => $child_id,
-            'post_parent' => $new_parent_id,
-        ), true );
+        // $result = \wp_update_post( array(
+        //     'ID'          => $child_id,
+        //     'post_parent' => $new_parent_id,
+        // ), true );
 
-        return ! \is_wp_error( $result );
+        // Update the parent of the new child to point to the target post
+        $result = $wpdb->update(
+            $wpdb->posts,
+            array('post_parent' => $new_parent_id),
+            array('ID' => $child_id),
+            array('%d'),
+            array('%d')
+        );
+
+       // return ! \is_wp_error( $result );
+       return $result &&  $result > 0;
     }
 
     /**

@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -105,9 +105,8 @@ class ProfileOptions {
      *
      * @param integer $profile_id profile ID to update
      * @param array $options_in options to update
-     * @return void
      */
-    public static function updateOptionsInDb( int $profile_id, array $options_in): void
+    public static function updateOptionsInDb( int $profile_id, array $options_in)
     {
         $profile_id = absint( $profile_id );
         $options = self::getOptionsFromDb($profile_id);

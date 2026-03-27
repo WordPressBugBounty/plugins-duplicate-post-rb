@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -20,7 +20,7 @@ class DuplicatorFactory
     /** @var DuplicatorInterface[] */
     private static array $providers = array();
 
-    public static function registerProvider(DuplicatorInterface $provider): void
+    public static function registerProvider(DuplicatorInterface $provider)
     {
         self::$providers[] = $provider;
     }

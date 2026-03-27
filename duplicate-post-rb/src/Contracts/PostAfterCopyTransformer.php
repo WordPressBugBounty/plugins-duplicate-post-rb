@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,6 @@ defined('WPINC') || exit;
 use rbDuplicatePost\Contexts\TransformerContext;
 
 interface PostAfterCopyTransformer {
-    public function transform(TransformerContext $context): void;
+    public function transform(TransformerContext $context);
     public static function supports(TransformerContext $context): bool;
 }

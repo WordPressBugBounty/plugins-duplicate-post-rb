@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -32,7 +32,7 @@ class Commands
         }
     }
 
-    public static function register(): void
+    public static function register()
     {
         WP_CLI::add_command('rb-duplicate-post duplicate', array(self::class, 'duplicate'));
         WP_CLI::add_command('rb-duplicate-post profiles', array(self::class, 'profiles'));

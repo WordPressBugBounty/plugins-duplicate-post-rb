@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -35,9 +35,8 @@ class ProfileExporter {
      * Exports multiple profiles and triggers file download.
      *
      * @param array $profile_ids Array of profile IDs to export.
-     * @return void
      */
-    public static function export_profiles(  array $profile_ids ): void {
+    public static function export_profiles(  array $profile_ids ) {
         if ( empty( $profile_ids ) ) {
             self::send_error_response( 'No profile IDs provided.' );
             return;
@@ -64,10 +63,8 @@ class ProfileExporter {
 
     /**
      * Exports ALL profiles from the system and triggers file download.
-     *
-     * @return void
      */
-    public static function export_all_profiles(): void {
+    public static function export_all_profiles() {
         // Get all profile IDs
         $all_profile_ids = self::get_all_profile_ids();
         
@@ -162,14 +159,9 @@ class ProfileExporter {
             return array();
         }
 
-        $excluded_keys = self::get_excluded_meta_keys();
         $filtered_meta = array();
 
         foreach ( $all_meta as $key => $values ) {
-            // Skip excluded keys
-            if ( in_array( $key, $excluded_keys, true ) ) {
-                continue;
-            }
 
             // If allowed_keys specified, skip keys not in the list
             if ( ! empty( $allowed_meta_keys ) && ! in_array( $key, $allowed_meta_keys, true ) ) {
@@ -207,9 +199,8 @@ class ProfileExporter {
      *
      * @param string $content
      * @param string $filename
-     * @return void
      */
-    private static function send_file_download( string $content ): void {
+    private static function send_file_download( string $content ){
         if ( ! headers_sent() ) {
             header( 'Content-Type: application/json; charset=utf-8' );
             header( 'Content-Disposition: attachment; filename="' . self::DEFAULT_FILENAME . '"' );
@@ -239,33 +230,11 @@ class ProfileExporter {
     }
 
     /**
-     * Gets excluded meta keys with filter support.
-     *
-     * @return array
-     */
-    private static function get_excluded_meta_keys(): array {
-        $keys = array(
-            '_edit_last',
-            '_edit_lock',
-            '_wp_old_slug',
-            '_wp_old_date',
-            '_wp_attachment_metadata',
-            '_wp_attached_file',
-            '_thumbnail_id',
-            '_wp_page_template',
-            // Add more protected keys as needed
-        );
-        
-        return apply_filters( 'rb_duplicate_post_export_excluded_meta_keys', $keys );
-    }
-
-    /**
      * Sends error response (for debugging or AJAX).
      *
      * @param string $message
-     * @return void
      */
-    private static function send_error_response( string $message ): void {
+    private static function send_error_response( string $message ) {
         if ( ! headers_sent() ) {
             header( 'Content-Type: application/json; charset=utf-8' );
             http_response_code( 400 );

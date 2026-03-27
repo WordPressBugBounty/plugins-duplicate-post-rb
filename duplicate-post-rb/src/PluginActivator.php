@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -14,13 +14,20 @@ namespace rbDuplicatePost;
 defined( 'WPINC' ) || exit;
 
 use rbDuplicatePost\Constants;
+use rbDuplicatePost\Log\Logger;
 
 class PluginActivator {
 
+    /**
+     * Constructor
+     */
     public function __construct() {
         self::hooks();
     }
 
+    /**
+     * Register hooks
+     */
     public static function hooks() {
         register_activation_hook( RB_DUPLICATE_POST_MAIN_FILE, array( self::class, 'activate' ) );
         register_deactivation_hook( RB_DUPLICATE_POST_MAIN_FILE, array( self::class, 'deactivate' ) );
@@ -30,11 +37,19 @@ class PluginActivator {
         }
     }
 
+    /**
+     * Add version to db
+     */
     public static function addVersionToDb() {
         add_option( Constants::INSTALL_FLAG_OPTION_NAME, true );
         update_option( Constants::VERSION_OPTION_NAME, RB_DUPLICATE_POST_VERSION );
     }
 
+    /**
+     * Check if plugin need update version
+     *
+     * @return bool
+     */
     public static function isNeedUpdateVersion() {
         $currentVersion = get_option( Constants::VERSION_OPTION_NAME, false );
         if ( $currentVersion == false ) {
@@ -46,10 +61,17 @@ class PluginActivator {
         return false;
     }
 
+    /**
+     * Activate plugin
+     */
     public static function activate() {
         add_option( Constants::INSTALL_FLAG_OPTION_NAME, true );
+        Logger::install();
     }
 
+    /**
+     * Deactivate plugin
+     */
     public static function deactivate() {
         delete_option( Constants::INSTALL_FLAG_OPTION_NAME );
     }

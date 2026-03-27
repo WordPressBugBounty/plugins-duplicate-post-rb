@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -201,6 +201,63 @@ class ProfileOptionsConfig {
                 'group'    => 'general',
             ),
 
+
+            'enableButton'        => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+                'group'    => 'general',
+            ),
+
+            'withoutConfirmationButton'   => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+                'group'    => 'general',
+            ),
+
+            'typeButton'        => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'label',
+                'group'    => 'general',
+                'options'  => array(
+                    'icon',
+                    'label',
+                    'icon-label',
+                )
+            ),
+
+            'labelButton'        => array(
+                'type'     => 'text',
+                'sanitize' => 'string',
+                'default'  => 'Copy',
+                'group'    => 'general',
+            ),
+
+            'iconButton'        => array(
+                'type'     => 'text',
+                'sanitize' => 'string',
+                'default'  => 'ContentCopyIcon',
+                'group'    => 'general',
+                'options'  => array(
+                    'ContentCopyIcon',
+                    'CopyAllIcon',
+                    'FolderCopyIcon',
+                    'AutorenewIcon',
+                    'BorderColorIcon',
+                    'ControlPointIcon',
+                )
+            ),
+
+            'colorButton'        => array(
+                'type'     => 'text',
+                'sanitize' => 'string',
+                'default'  => '#2271b1',
+                'group'    => 'general',
+            ),
+
+            
         );
     }
 }

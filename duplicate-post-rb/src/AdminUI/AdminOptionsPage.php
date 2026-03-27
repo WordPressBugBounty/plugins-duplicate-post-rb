@@ -1,7 +1,7 @@
 <?php
     /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,7 @@
     use rbDuplicatePost\GeneralOptions;
     use rbDuplicatePost\User;
     use rbDuplicatePost\Utils;
+    use rbDuplicatePost\ProCheck;
     use rbDuplicatePost\Profile\Profile;
 
     class AdminOptionsPage {
@@ -31,7 +32,10 @@
             add_action('init', array( self::class, 'hooks' ));
         }
 
-        public static function hooks(){
+        /**
+         * Hooks
+         */  
+        public static function hooks() {
             if ( !User::canManageOptions() ) {
                 return ;
             }
@@ -50,7 +54,7 @@
              #wpadminbar >  #wp-toolbar > #wp-admin-bar-root-default #wp-admin-bar-rb-duplicate-post-copy-button  .ab-icon:before {
                     content: "\f105";
                     top: 3px;
-                }
+            }
             #adminmenu .toplevel_page_rb_plugins_settings > .wp-menu-image.dashicons-rest-api:before{ color: #99d000; } </style>';
         }
 
@@ -155,7 +159,7 @@
          */
         public static function renderPage() {
             $profile_id = Profile::getLastViewedProfile();
-            $blockPro = true;
+            $pro = ProCheck::isActive();
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'Duplicate Post RB', 'duplicate-post-rb' ); ?></h1>
@@ -167,7 +171,7 @@
                 imagesUrl: "<?php echo esc_js( RB_DUPLICATE_POST_URL . 'assets/js/' ); ?>",
                 restUrl: "<?php echo esc_js( get_rest_url() ); ?>",
                 wp_rest: "<?php echo esc_js( wp_create_nonce( 'wp_rest' ) ); ?>",
-                blockPro: <?php echo $blockPro ? 'true' : 'false'; ?>,
+                blockPro: <?php echo $pro ? 'false' : 'true'; ?>,
                 debug: true
             };
         </script>

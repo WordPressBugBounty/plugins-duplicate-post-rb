@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -36,5 +36,7 @@ class Bootstrap
         if (defined('WP_CLI') && WP_CLI) {
             new \rbDuplicatePost\cli\Commands();
         }
+
+        \rbDuplicatePost\Log\LogCleaner::schedule();
     }
 }

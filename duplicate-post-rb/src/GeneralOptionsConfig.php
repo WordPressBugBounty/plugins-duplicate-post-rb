@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -109,154 +109,77 @@ class GeneralOptionsConfig {
                 'sanitize' => 'boolean',
                 'default'  => true,
             ),
-            // 'copyDate'           => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyStatus'         => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copySlug'           => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyExcerpt'        => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyContent'        => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyFeaturedImage'  => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyTemplate'       => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyFormat'         => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyAuthor'         => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyMenuOrder'      => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyPassword'       => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyAttachments'    => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyChildren'       => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyCategories'     => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyTags'           => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => true,
-            //     'group'    => 'general',
-            // ),
-            // 'copyTaxonomies'     => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyNavigationMenu' => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyLinkCategories' => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
-            // 'copyAllPostMeta'    => array(
-            //     'type'     => 'checkbox',
-            //     'sanitize' => 'boolean',
-            //     'default'  => false,
-            //     'group'    => 'general',
-            // ),
 
-            // 'counterStartValue'  => array(
-            //     'type'     => 'text',
-            //     'sanitize' => 'integer',
-            //     'default'  => 1,
-            //     'group'    => 'general',
-            // ),
-            // 'dateFormat'         => array(
-            //     'type'     => 'text',
-            //     'sanitize' => 'string',
-            //     'default'  => 'd/m/Y',
-            //     'group'    => 'general',
-            // ),
+            'enablePostPostType'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
 
-            // 'timeFormat'         => array(
-            //     'type'     => 'text',
-            //     'sanitize' => 'string',
-            //     'default'  => 'h:i',
-            //     'group'    => 'general',
-            // ),
+            'enablePagePostType'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
 
-            // 'prefixValue'        => array(
-            //     'type'     => 'text',
-            //     'sanitize' => 'string',
-            //     'default'  => '',
-            //     'group'    => 'general',
-            // ),
+            'enableCustomPostType'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
 
-            // 'suffixValue'        => array(
-            //     'type'     => 'text',
-            //     'sanitize' => 'string',
-            //     'default'  => '',
-            //     'group'    => 'general',
-            // ),
+            'enableTypeYoastSEO'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'enableTypeRankMath'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+            'enableTypeAllInOneSEO'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  =>  false,
+            ),
+           
+             'enableTypeACF'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'enableTypeWooCommerce'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'enableTypeElementor'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'enableTypeJetPack'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'enableTypeWPBakery'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+
+            'disabledCustomPostTypes'          => array(
+                'type'     => 'text',
+                'sanitize' => 'multiline_string',
+                'default'  => '',
+            ),
 
         );
     }

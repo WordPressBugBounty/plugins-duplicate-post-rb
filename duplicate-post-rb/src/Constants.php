@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -50,8 +50,13 @@ class Constants
     public const ALLOWED_POST_STATUSES = ['publish', 'private', 'draft', 'future', 'pending', 'inherit']; //, 'trash'
 
 
-    /* Allowed post types */
-    public const ALLOWED_POST_TYPES = ['post', 'page'];
-
+    /* Meta key for history */
     public const HISTORY_META_KEY = 'rb-duplicate-post-history';
+
+    /* Log table name */
+    public const LOG_TABLE_NAME = 'rb_duplicate_post_log';
+
+
+    /* Action buttons count */
+    public const ACTION_BUTTONS_COUNT = 5;
 }

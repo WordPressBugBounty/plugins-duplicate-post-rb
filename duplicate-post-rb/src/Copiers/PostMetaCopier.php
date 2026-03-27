@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -30,12 +30,13 @@ class PostMetaCopier {
         '_edit_lock',
         '_wp_old_slug',
         '_wp_old_date',
-        '_wp_attachment_metadata',
-        '_wp_attached_file',
+
         'rb-duplicate-post-history',
+			
         //'_thumbnail_id',
         //'_wp_page_template',
-        // Add your plugin-specific protected keys here
+        //'_wp_attachment_metadata',
+        //'_wp_attached_file',
     );
 
     /**

@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -38,6 +38,12 @@ class TransformerContext {
      * @var int Profile ID associated with the transformation.
      */
     private $profile_id;
+    
+    /**
+     * @var array Date for  used during the transformation.
+     */
+    private $data; // data for  transformers 
+
 
     /**
      * Constructor.
@@ -47,13 +53,15 @@ class TransformerContext {
      * @param array $options Options used during the transformation.
      * @param int $profile_id Profile ID associated with the transformation.
      */
-    public function __construct( BlogPostContext $source, BlogPostContext $target, $options = array(), $profile_id = 0   ) {
+    public function __construct( BlogPostContext $source, BlogPostContext $target, $options = array(), $profile_id = 0 , array $data = array()  ) {
         $this->source = $source;
         $this->target = $target;
 
         $this->options = $options;
 
         $this->profile_id = is_numeric( $profile_id ) ? (int) $profile_id : 0;
+
+        $this->data = $data;
     }
 
     /**
@@ -68,6 +76,23 @@ class TransformerContext {
      */
     public function get_target() {
         return $this->target;
+    }
+
+    
+    /**
+     * get data for transformers
+     * 
+    */
+    public function get_data() : array {
+        return $this->data;
+    }
+
+    /**
+     * set data for transformers
+     *
+    */
+    public function set_data(array $data) {
+        $this->data = $data;
     }
 
 
@@ -136,11 +161,11 @@ class TransformerContext {
      * @param int $profile_id
      * @return self
      */
-    public static function from_current_blog( $source_post_id, $target_post_id, $options = array(), $profile_id = 0 ) {
+    public static function from_current_blog( $source_post_id, $target_post_id, $options = array(), $profile_id = 0, $data = array() ) {
         $source = new BlogPostContext( $source_post_id );
         $allow_empty_target = $target_post_id === 0;
         $target = new BlogPostContext( $target_post_id, null, $allow_empty_target );
-        return new self( $source, $target, $options, $profile_id );
+        return new self( $source, $target, $options, $profile_id, $data );
     }
 
     /**
@@ -154,12 +179,12 @@ class TransformerContext {
      * @param int $profile_id
      * @return self
      */
-    public static function from_blog_ids( $source_post_id, $source_blog_id, $target_post_id, $target_blog_id, $options = array(), $profile_id = 0 ) {
+    public static function from_blog_ids( $source_post_id, $source_blog_id, $target_post_id, $target_blog_id, $options = array(), $profile_id = 0, $data = array() ) {
         $source = new BlogPostContext( $source_post_id, $source_blog_id );
 
         $allow_empty_target = $target_post_id === 0;
         $target = new BlogPostContext( $target_post_id, $target_blog_id, $allow_empty_target );
         
-        return new self( $source, $target, $options, $profile_id );
+        return new self( $source, $target, $options, $profile_id, $data );
     }
 }

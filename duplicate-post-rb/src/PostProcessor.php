@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,7 @@ defined( 'WPINC' ) || exit;
 use rbDuplicatePost\Contracts\PostTransformer;
 use rbDuplicatePost\Contracts\PostAfterCopyTransformer;
 use rbDuplicatePost\OptionsManager;
+use rbDuplicatePost\Helpers\PrepareOptions;
 
 use rbDuplicatePost\Transformers\TitleTransformer;
 use rbDuplicatePost\Transformers\DateTransformer;
@@ -37,6 +38,8 @@ use rbDuplicatePost\AfterCopyTransformers\AttachmentsTransformer;
 use rbDuplicatePost\AfterCopyTransformers\FeaturedImageTransformer;
 use rbDuplicatePost\AfterCopyTransformers\MetaTransformer;
 use rbDuplicatePost\AfterCopyTransformers\TermTransformer;
+use rbDuplicatePost\AfterCopyTransformers\GUIDTransformer;
+use rbDuplicatePost\AfterCopyTransformers\ACFTransformer;
 
 
 use rbDuplicatePost\Contexts\TransformerContext;
@@ -100,6 +103,8 @@ class PostProcessor {
             new ChildrenTransformer(),
             new AttachmentsTransformer(),
             new FeaturedImageTransformer(),
+            //new GUIDTransformer(),
+            new ACFTransformer(),
             
             /* Important this is last */
             new HistoryTransformer(),
@@ -115,30 +120,42 @@ class PostProcessor {
      * @throws \Exception
      */
     public function processPost(int $source_post_id, int $profile_id = 0): int {
-        $source_post = $this->readSourcePost($source_post_id);
         
+        // Read source post data
+        $source_post_data = $this->readSourcePost($source_post_id);
+        
+        // Get options
         $options = $this->options_manager->getOptions($profile_id);
 
+        // Prepare options
+        $options = PrepareOptions::handle($options, $source_post_id, $profile_id);
+
+        // Create context for transformers
         $transformer_context = TransformerContext::from_current_blog( $source_post_id, 0, $options, $profile_id, );
         
-        $modified_data = $this->applyTransformers($transformer_context, $source_post);
+        // Apply transformers to source post data
+        $modified_data = $this->applyTransformers($transformer_context, $source_post_data);
 
+        // Create new post
         $new_post_id =  $this->createNewPost($modified_data);
-
+        
+        // Create context for after copy transformers
         $transformer_context_after_create = TransformerContext::from_current_blog( $source_post_id, $new_post_id, $options, $profile_id );
         
+        // Apply after copy transformers
         $this->applyAfterCopyTransformers($transformer_context_after_create);
 
+        // Return new post ID
         return $new_post_id;
     }
+
     
     /**
      * Apply post transformers to post data.
      *
      * @param TransformerContext $context
-     * @return void
      */
-    private function applyAfterCopyTransformers(TransformerContext $context): void {
+    private function applyAfterCopyTransformers(TransformerContext $context) {
         foreach ($this->afterCopyTransformers as $transformer) {
             $transformer->transform($context);
         }
@@ -181,6 +198,11 @@ class PostProcessor {
         if(isset($post_data['ID'])) {
              // Reset ID to create new post
             unset($post_data['ID']);
+        }
+
+        if(isset($post_data['guid'])) {
+             // Reset guid to create new post
+            unset($post_data['guid']);
         }
 
         // Create new post

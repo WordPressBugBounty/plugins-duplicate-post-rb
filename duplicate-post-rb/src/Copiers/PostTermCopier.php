@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -443,14 +443,13 @@ class PostTermCopier {
      * @param int $target_term_id
      * @param BlogPostContext $source
      * @param BlogPostContext $target
-     * @return void
      */
     private static function copy_term_meta(
         int $source_term_id,
         int $target_term_id,
         BlogPostContext $source,
         BlogPostContext $target
-    ): void {
+    ) {
         // Same blog — no need to copy
         if ( $source->get_blog_id() === $target->get_blog_id() ) {
             return;
@@ -515,12 +514,11 @@ class PostTermCopier {
      *
      * @param array<string, array<int>> $terms_by_taxonomy
      * @param BlogPostContext $target
-     * @return void
      */
     public static function assign_terms_to_post(
         array $terms_by_taxonomy,
         BlogPostContext $target
-    ): void {
+    ) {
 
         if ( empty( $terms_by_taxonomy ) ) {
             return;

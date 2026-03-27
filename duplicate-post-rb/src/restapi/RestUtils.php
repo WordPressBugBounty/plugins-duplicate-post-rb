@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -32,7 +32,6 @@ class RestUtils
         return in_array(
             $type,
             array(
-
                 'text', // Validates with validate_text_field.
                 'email', // Validates with validate_text_field.
                 'number', // Validates with validate_text_field.

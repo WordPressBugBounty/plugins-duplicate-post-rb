@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -32,7 +32,7 @@ class ProfileType
     {
         add_action('init', array( $this, 'addType'), 1);
 
-        if (self::isNeedRefreshAfterInstall()) {
+        if ( self::isNeedRefreshAfterInstall() ) {
             add_action('init', array(self::class, 'RefreshAfterInstall' ));
         }
     }

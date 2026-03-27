@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -87,5 +87,10 @@ class Utils {
         $admin_url = GeneralOptions::getOptionValue( 'pluginMenuInToolsMenu' ) ? 'tools.php' : 'admin.php';
         // Return url with page parameter
         return add_query_arg( 'page', 'rb_duplicate_post_settings', admin_url( $admin_url ) );
+    }
+
+
+    public static function getMaxInteger() {
+        return defined('PHP_INT_MAX') ? PHP_INT_MAX : 9999;
     }
 }

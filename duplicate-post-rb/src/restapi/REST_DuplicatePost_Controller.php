@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.5.8
+*      Version: 1.6.1
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -19,6 +19,7 @@ use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\Notification;
 use rbDuplicatePost\Constants;
 use rbDuplicatePost\User;
+use rbDuplicatePost\ProCheck;
 
 use WP_REST_Request;
 use WP_REST_Response;
@@ -111,22 +112,42 @@ class REST_DuplicatePost_Controller extends REST_Controller {
         $no_refresh = $request->get_param( 'no_refresh' ) ? 1 : 0 ;
 
         $results    = array();
+
+        $success_count = 0;
+        $unsuccess_count = 0;
     
         foreach ( $ids as $id ) {
             for($i=0; $i<$copies; $i++) {
                 try {
+                    if( $duplicator->is_allowed_special_post($id)===1 && !ProCheck::isActive()) {
+                        $results[] =  array(
+                            'id'    => $id,
+                            'duplicate_id'=> 0,
+                            'success' => false,
+                            'code' => 'pro_version_not_active',
+                            'error' => 'Duplicate Post Pro is not active',
+                        );
+                        ++$unsuccess_count;
+                        continue;
+                    }
+
                     $newId = $duplicator->duplicate( $id, $profile_id );
                     $results[] = array(
                         'id'    => $id,
                         'duplicate_id'=> $newId,
                         'success' => true,
+                        'code' => 'duplicate_success',
                     );
+                    ++$success_count;
                 } catch ( \Exception $e ) {
                     $results[] =  array(
                         'id'    => $id,
                         'duplicate_id'=> false,
-                        'success' => false
+                        'success' => false,
+                        'code' => 'error_during_duplication',
+                        'error' => $e->getMessage(),
                     );
+                    ++$unsuccess_count;
                     //TODO : add error to log
                     // $results[ $id ] = array( 'error' => $e->getMessage() );
                 }
@@ -142,7 +163,10 @@ class REST_DuplicatePost_Controller extends REST_Controller {
         }
 
         return self::rest_response(
-            $results, 'success', 'Operation success', 201
+            $results, 
+            'success', 
+            'Operation success', 
+            201
         );
     }
 

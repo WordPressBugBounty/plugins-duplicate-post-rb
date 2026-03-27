@@ -3,19 +3,21 @@ Contributors: rbplugins
 Tags: duplicate posts, duplicate pages, copy post, copy pages, duplicate post
 Requires at least: 3.1
 Tested up to: 6.9
-Stable tag: 1.5.8
+Stable tag: 1.6.1
 License: GPLv2 or later
 
 Duplicate Post RB makes it easy to duplicate posts, pages and custom post types. Create duplicate posts, clone content, automate duplication
 
 == Description ==
 
+[📄 Details](https://rbplugins.com/wordpress-plugins/duplicate-post-rb/) | [🚀 Get PRO Version](https://rbplugins.com/wordpress-plugins/duplicate-post-rb/#pricing) | [📖 Documentation](https://rbplugins.com/docs/duplicate-post-rb/)
+
 **Duplicate Post RB** is a powerful yet lightweight plugin that allows you to **duplicate posts, duplicate pages, and clone custom post types** in WordPress.  
 Whether you want to **copy posts**, **clone pages**, or **generate multiple content variations**, this plugin provides flexible and professional tools for content duplication.
 
 Unlike basic duplicate post tools, Duplicate Post RB gives you full control over what exactly gets copied, including content, title, slug, featured image, taxonomies, templates, metadata, and more. This makes it ideal for websites with structured content, landing pages, learning systems, and large editorial workflows.
 
-The new version introduces advanced duplication logic with configuration profiles and WP-CLI support - making Duplicate Post RB suitable for editors, agencies, and developers who need full control over how content is copied.
+The new version introduces advanced duplication logic with configuration profiles and [WP-CLI support](https://rbplugins.com/docs/duplicate-post-rb/wp-cli-duplication/) - making Duplicate Post RB suitable for editors, agencies, and developers who need full control over how content is copied.
 
 Duplicate Post RB now offers both profile-based duplication logic and global plugin settings, making it suitable for editors, administrators, agencies, and developers working with complex WordPress setups.
 
@@ -23,6 +25,21 @@ Duplicate Post RB now offers both profile-based duplication logic and global plu
 
 - **New global option: All Post Meta**
 You can now copy all post meta fields at once using a single global switch. This significantly simplifies duplication when working with complex posts, custom fields, and third-party plugins.
+
+- **Improved Custom Post Types support**  
+Enhanced support for duplicating custom post types, including those registered by themes and plugins, with more consistent behavior across different setups.
+
+- **Full Advanced Custom Fields (ACF) integration**  
+Added full support for ACF, including custom fields, field groups, post types, and taxonomies, ensuring complete and accurate duplication of structured data.
+
+- **Import and Export for duplication profiles**  
+You can now export and import duplication profiles, making it easier to reuse configurations across multiple projects and environments.
+
+- **Custom profile buttons in post/page list**  
+Added the ability to create profile-based custom buttons, allowing one-click duplication with predefined settings directly from the posts and pages list.
+
+- **Improved integrations support**  
+Better handling of third-party plugins and extended compatibility with complex WordPress setups.
 
 - **Fixed and improved Custom Taxonomies support**
 Custom taxonomies are now copied more reliably and consistently across different post types and duplication scenarios.
@@ -93,6 +110,45 @@ Duplicate Post RB is built with performance and reliability in mind. The plugin 
 
 Whether you're running a blog, a landing-page builder, an online store, a multisite network, or a content-heavy website Duplicate Post RB helps you duplicate posts and pages faster, easier, and with full control over the result.
 
+### 🏷️ Naming Rules
+
+Duplicate Post RB includes flexible [Naming Rules](https://rbplugins.com/docs/duplicate-post-rb/naming-rules/) that let you define how copied posts, pages, and custom post types will be named. This is useful when you create multiple copies of the same content and want each new item to follow a clear and predictable naming pattern.
+
+For each duplication profile, you can define a prefix and suffix for generated copies. The original post title stays in the middle, so you can build naming structures that match your editorial workflow. The plugin also supports dynamic placeholders such as [Counter], [CurrentDate], and [CurrentTime]. These values can be added to the prefix or suffix to automatically generate unique names for duplicated items.
+
+A live preview helps you see the final naming format before duplication. You can also define the counter start value and configure custom date and time formats to match your preferred naming style.
+
+This makes [Naming Rules](https://rbplugins.com/docs/duplicate-post-rb/naming-rules/) useful for content teams, landing page variations, product drafts, template-based workflows, and any project where duplicated content needs to stay organized.
+
+### 🎨 Profile Custom Button
+
+Duplicate Post RB allows you to create custom duplication buttons for each profile and display them directly in the posts and pages list. You can enable a custom button per profile and assign it a specific duplication configuration. This makes it possible to trigger different duplication behaviors with a single click, without opening additional dialogs or switching settings.
+
+Each button can be customized with its own label, color, and display type. You can choose between label, icon, or a combination of both, depending on how you want the action to appear in the interface. Custom buttons are displayed alongside standard WordPress actions in the post and page listing, allowing quick access to duplication workflows directly from the admin list view.
+
+In addition, an optional “copy without confirmation” mode allows you to skip confirmation dialogs and perform instant duplication. This feature is especially useful for teams working with predefined duplication scenarios, templates, or structured content workflows where speed and consistency are important.
+
+### 🔗 Integrations
+
+Duplicate Post RB supports duplication of standard WordPress content types such as posts and pages, as well as custom post types created by themes or plugins. You can enable duplication for all registered custom post types or selectively exclude specific ones based on your workflow. This provides flexibility when working with complex site structures.
+
+The plugin also includes support for duplicating data created by third-party plugins. Integration with Advanced Custom Fields (ACF) allows you to duplicate custom field data along with the post content, preserving structured data and layouts. Additional integrations with popular plugins such as Yoast SEO, Rank Math, WooCommerce, Elementor, WPBakery, and others are planned to extend duplication capabilities across the WordPress ecosystem.
+
+This ensures that duplicated content remains complete and consistent, even when using advanced plugins and custom-built solutions.
+
+### 🧩 Advanced Custom Fields (ACF) Integration
+
+Duplicate Post RB provides full integration with Advanced Custom Fields (ACF), allowing you to duplicate not only content, but the entire ACF data structure associated with a post.
+
+The plugin supports duplication of:
+
+• ACF custom fields and their values  
+• Field Groups assigned to posts and post types  
+• ACF-based custom post types  
+• Custom taxonomies created via ACF  
+
+All ACF data is copied accurately, preserving relationships, field configurations, and structured content without data loss. This ensures that duplicated posts remain fully functional and consistent, even in complex setups where ACF is used to build dynamic layouts, custom data models, or advanced content structures. The integration works seamlessly in the background and does not require additional configuration.
+
 ### ⚙️ Global Settings
 
 The new Global Settings section allows you to control how duplication features behave across your WordPress installation. From a single settings screen, you can define which user roles are allowed to duplicate content, including Super Admins, Administrators, Editors, Authors, and Contributors. This makes it easy to align duplication permissions with your team structure and editorial responsibilities.
@@ -104,6 +160,21 @@ Overall, the Global Settings section helps tailor Duplicate Post RB to different
 Duplicate Post RB now includes an option to move the plugin menu to the Tools section.
 
 This is useful if you want to: keep the WordPress admin menu cleaner, reduce visual clutter, or hide the plugin from the primary navigation while keeping it accessible.
+
+### 🚀 PRO Features
+
+Duplicate Post RB includes additional features designed for advanced workflows and professional use cases.
+
+Key extended capabilities include:
+
+• Custom duplication buttons per profile for one-click actions  
+• Option to duplicate content without confirmation dialogs  
+• Full integration with Advanced Custom Fields (ACF), including fields, field groups, post types, and taxonomies  
+• Ability to exclude specific custom post types from duplication  
+• Import and export of duplication profiles for reuse across projects  
+• Extended control over duplication behavior for complex content structures  
+
+These features are useful for teams managing structured content, templates, landing pages, and large-scale WordPress installations. PRO features are available in the full version of the plugin.
 
 == Installation ==
 
@@ -158,6 +229,7 @@ Everything you need:
 - Attachments  
 - Children  
 - Navigation menu  
+- All Post Meta
 
 = Does the plugin support multisite? =
 Basic support is available. Advanced multisite duplication (cross-site copying) is coming soon.
@@ -179,6 +251,15 @@ Yes. It's optimized for speed and does not affect admin performance.
 6. WP-CLI Output – duplicating post IDs through command line.
 
 == Changelog ==
+
+= 1.6.1 (27-03-2026) =
+* Added full Advanced Custom Fields (ACF) integration (fields, field groups, post types, taxonomies)
+* Improved support for custom post types across different plugins and themes
+* Added import/export functionality for duplication profiles
+* Added profile-based custom buttons in post/page lists
+* Added option to exclude specific custom post types from duplication
+* Added option to duplicate content without confirmation (instant copy)
+* Improved integration handling for third-party plugins
 
 = 1.5.8 (17-01-2026) =
 * Updated duplication dialog with a refreshed and more user-friendly interface
@@ -258,7 +339,12 @@ Yes. It's optimized for speed and does not affect admin performance.
 * First release of the Duplicate Post plugin.
 
 == Upgrade Notice ==
-* Updated duplication dialog with a refreshed and more user-friendly interface
-* Added new field to define the number of copies to create
-* Updated import/export functionality for duplication profiles
 
+= 1.6.1 (27-03-2026) =
+* Added full Advanced Custom Fields (ACF) integration (fields, field groups, post types, taxonomies)
+* Improved support for custom post types across different plugins and themes
+* Added import/export functionality for duplication profiles
+* Added profile-based custom buttons in post/page lists
+* Added option to exclude specific custom post types from duplication
+* Added option to duplicate content without confirmation (instant copy)
+* Improved integration handling for third-party plugins
