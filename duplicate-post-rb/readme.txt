@@ -2,8 +2,8 @@
 Contributors: rbplugins
 Tags: duplicate posts, duplicate pages, copy post, copy pages, duplicate post
 Requires at least: 3.1
-Tested up to: 6.9
-Stable tag: 1.6.1
+Tested up to: 7.0
+Stable tag: 1.6.2
 License: GPLv2 or later
 
 Duplicate Post RB makes it easy to duplicate posts, pages and custom post types. Create duplicate posts, clone content, automate duplication
@@ -252,6 +252,9 @@ Yes. It's optimized for speed and does not affect admin performance.
 
 == Changelog ==
 
+= 1.6.2 (27-05-2026) =
+* Wordpress 7.0 compatibility 
+
 = 1.6.1 (27-03-2026) =
 * Added full Advanced Custom Fields (ACF) integration (fields, field groups, post types, taxonomies)
 * Improved support for custom post types across different plugins and themes
@@ -340,11 +343,5 @@ Yes. It's optimized for speed and does not affect admin performance.
 
 == Upgrade Notice ==
 
-= 1.6.1 (27-03-2026) =
-* Added full Advanced Custom Fields (ACF) integration (fields, field groups, post types, taxonomies)
-* Improved support for custom post types across different plugins and themes
-* Added import/export functionality for duplication profiles
-* Added profile-based custom buttons in post/page lists
-* Added option to exclude specific custom post types from duplication
-* Added option to duplicate content without confirmation (instant copy)
-* Improved integration handling for third-party plugins
+= 1.6.2 (27-05-2026) =
+* Wordpress 7.0 compatibility 
