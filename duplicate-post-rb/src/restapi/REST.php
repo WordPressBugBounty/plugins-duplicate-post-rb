@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -23,5 +23,6 @@ class REST
         new \rbDuplicatePost\restapi\REST_Profile_Options_Controller();
         new \rbDuplicatePost\restapi\REST_Profile_Export_Controller();
         new \rbDuplicatePost\restapi\REST_Profile_Import_Controller();
+        new \rbDuplicatePost\restapi\REST_Post_Search_Controller();
     }
 }

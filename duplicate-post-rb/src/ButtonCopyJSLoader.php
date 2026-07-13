@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -17,6 +17,7 @@ use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\User;
 use rbDuplicatePost\Utils;
 use rbDuplicatePost\Notification;
+use rbDuplicatePost\ProCheck;
 
 /**
  * Class ButtonCopyJSLoader
@@ -40,7 +41,7 @@ class ButtonCopyJSLoader {
         if ( ! self::isJsCodeNeed() ) {
             return;
         }
-        $blockPro = false;
+        $blockPro = ProCheck::isActive()== false;
         $profile_id = (int) Profile::getDefaultProfileId();
         
         $notificationShow = false;
@@ -53,10 +54,11 @@ class ButtonCopyJSLoader {
 
         $notification = new Notification();
         $user_notification = $notification->get_notification_once();
+        $notification_types = array(Constants::NOTIFICATION_TYPE_POST_COPIED, Constants::NOTIFICATION_TYPE_POST_CREATED);
 
         if($user_notification && isset($user_notification['type']) && isset($user_notification['data'])) {
             $notification_type = $user_notification['type'];
-            if($notification_type == Constants::NOTIFICATION_TYPE_POST_COPIED) {
+            if( in_array($notification_type, $notification_types) ) {
                 $notificationShow = true;
                 foreach ($user_notification['data'] as $key => $value) {
                     if( isset($value['success']) && $value['success'] ) {
@@ -100,30 +102,52 @@ class ButtonCopyJSLoader {
         $jsCode .= "
 const toPositiveInt = (value)  =>{ const num = Number(value); return Number.isInteger(num) && num > 0 ? num : 0; }
 const handleRbDuplicatePostButton = (event)=>{
-        if (typeof window.rb_duplicate_post_dialog !== 'function') {
-            console.warn('Function rb_duplicate_post_dialog not found.');
-            return;
-        }
+    if(!event || !event.currentTarget){
+        return;
+    }
+    const el = event.currentTarget;
 
-        if(!event || !event.currentTarget){
-            return;
-        }
-        
-        const el = event.currentTarget;
+    const typeDataExists = el.getAttribute('data-duplicate-action-type')!==null;
+    const dataEl = !typeDataExists && el.querySelector('.rb-duplicate-post-copy-button-data') ? el.querySelector('.rb-duplicate-post-copy-button-data') : el;
+    const duplicateActionType = dataEl.getAttribute('data-duplicate-action-type') || 'duplicate';
 
-        const postId = toPositiveInt(el.getAttribute('data-post-id'));
-        if ( postId <= 0) {
-            console.warn('Incorrect post ID');
-            return;
-        }
-            
-        const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
-        const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
-        const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
-
-        console.log('no_refresh, profileId, without_confirmation', no_refresh, profileId, withoutConfirmation);
-        window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh, profileId , withoutConfirmation);
+    if(duplicateActionType === 'create') {
+        runRbDuplicatePostCreateAction(dataEl);
+    }
+    if(duplicateActionType === 'duplicate') {
+        runRbDuplicatePostDuplicateAction(dataEl);
+    }
 }
+
+const runRbDuplicatePostDuplicateAction = (el) => {
+    if (typeof window.rb_duplicate_post_dialog !== 'function') {
+        console.warn('Function rb_duplicate_post_dialog not found.');
+        return;
+    }
+
+    const postId = toPositiveInt(el.getAttribute('data-post-id'));
+    if ( postId <= 0) {
+        console.warn('Incorrect post ID');
+        return;
+    }
+            
+    const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
+    const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
+    const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
+    window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh, profileId , withoutConfirmation);
+}
+
+const runRbDuplicatePostCreateAction = (el) => {
+    if (typeof window.rb_duplicate_post_dialog_new !== 'function') {
+        console.warn('Function rb_duplicate_post_dialog_new not found.');
+        return;
+    }
+    const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
+    const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
+    const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
+    window.rb_duplicate_post_dialog_new(profileId, no_refresh , withoutConfirmation);
+}
+
 const handleRbDuplicatePostMouse = (event) => {
     if (event.type === 'click' && event.button !== 0) return;
     if (event.type === 'mouseup' && event.button !== 1) return;

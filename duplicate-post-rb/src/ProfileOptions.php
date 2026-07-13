@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -119,5 +119,15 @@ class ProfileOptions {
         if (!add_post_meta( $profile_id, Constants::OPTION_NAME, $options, true)) {
             update_post_meta(  $profile_id, Constants::OPTION_NAME, $options);
         }
+    }
+
+    public static function getProfileOptionValue($options, $option_id, $default = false){
+        if(!is_array($options) || !isset($options[$option_id])){
+            return $default;
+        }
+        if(!isset($options[$option_id]['value'])){
+            return $default;
+        }
+        return $options[$option_id]['value'];
     }
 }

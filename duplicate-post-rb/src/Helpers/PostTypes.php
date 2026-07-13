@@ -149,6 +149,32 @@ class PostTypes {
     }
 
     /**
+     * Get all supported types with labels
+     * Format: slug => label
+     *
+     * @param int|null $blog_id Optional blog ID for multisite
+     * @return array<string, string>
+     */
+    public static function get_all_types_with_labels( ?int $blog_id = null ): array {
+        return self::with_blog( $blog_id, function () {
+            $types = self::get_all_types();
+
+            $post_type_objects = get_post_types( [], 'objects' );
+
+            $result = [];
+            foreach ( $types as $slug ) {
+                $label = isset( $post_type_objects[ $slug ] )
+                    ? $post_type_objects[ $slug ]->labels->singular_name
+                    : ucfirst( $slug );
+
+                $result[ $slug ] = $label;
+            }
+
+            return $result;
+        });
+    }
+
+    /**
      * Check supported  type
      * 
      * @param string $type  type slug

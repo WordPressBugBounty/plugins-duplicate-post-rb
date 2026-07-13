@@ -1,7 +1,7 @@
 <?php
     /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -18,6 +18,7 @@
     use rbDuplicatePost\Utils;
     use rbDuplicatePost\ProCheck;
     use rbDuplicatePost\Profile\Profile;
+    use rbDuplicatePost\Helpers\PostTypes;
 
     class AdminOptionsPage {
 
@@ -160,18 +161,20 @@
         public static function renderPage() {
             $profile_id = Profile::getLastViewedProfile();
             $pro = ProCheck::isActive();
+            $post_types = PostTypes::get_all_types_with_labels(); 
         ?>
         <div class="wrap">
             <h1><?php esc_html_e( 'Duplicate Post RB', 'duplicate-post-rb' ); ?></h1>
         </div>
-        <div style="background-color:#fff; margin-right:20px;" class="rbDuplicatePostOptions" rbDuplicatePost_id="<?php echo  $profile_id ; ?>"></div>
+        <div style="background-color:#fff; margin-right:20px;" class="rbDuplicatePostOptions" rbDuplicatePost_id="<?php echo  esc_attr($profile_id) ; ?>"></div>
         <script>
             window.rb_duplicate_post_options_url = "<?php echo esc_js( RB_DUPLICATE_POST_URL . 'assets/js/' ); ?>";
             window.rb_duplicate_post = {
-                imagesUrl: "<?php echo esc_js( RB_DUPLICATE_POST_URL . 'assets/js/' ); ?>",
-                restUrl: "<?php echo esc_js( get_rest_url() ); ?>",
-                wp_rest: "<?php echo esc_js( wp_create_nonce( 'wp_rest' ) ); ?>",
-                blockPro: <?php echo $pro ? 'false' : 'true'; ?>,
+                imagesUrl:  "<?php echo esc_js( RB_DUPLICATE_POST_URL . 'assets/js/' ); ?>",
+                restUrl:    "<?php echo esc_js( get_rest_url() ); ?>",
+                wp_rest:    "<?php echo esc_js( wp_create_nonce( 'wp_rest' ) ); ?>",
+                blockPro:   <?php echo $pro ? 'false' : 'true'; ?>,
+                postTypes:  <?php echo wp_json_encode( $post_types ); ?>,
                 debug: true
             };
         </script>

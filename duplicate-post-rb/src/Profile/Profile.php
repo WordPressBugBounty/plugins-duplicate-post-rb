@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,7 @@ defined('WPINC') || exit;
 use rbDuplicatePost\Constants;
 use rbDuplicatePost\User;
 use rbDuplicatePost\cli\CliUtils ;
+use rbDuplicatePost\ProfileOptions;
 
 class Profile
 {
@@ -139,7 +140,7 @@ class Profile
      * @param integer $limit
      * @return array
      */
-    public static function getProfiles(int $limit = -1, $fields = 'ids') : array 
+    public static function getProfiles(int $limit = -1, $fields = 'ids' ) : array 
     {
         $arg = [
             'post_type'   => RB_DUPLICATE_POST_PROFILE_TYPE_POST,
@@ -306,4 +307,64 @@ class Profile
             self::setDefaultProfile($profile_id);
         }
     }
+
+    public static function getProfileSourceId(int $profile_id): int
+    {        
+        $profile_id = absint($profile_id);
+        if(!Profile::isProfileExists($profile_id)) {
+            return 0;
+        }
+
+        $options = ProfileOptions::getOptionsArray($profile_id, Constants::OPTION_NAME_SOURCE_ID);
+        $option = $options[Constants::OPTION_NAME_SOURCE_ID];
+
+        if (! is_array($option) || !isset($option['value']) ) { 
+            return 0;
+        }
+
+        return absint($option['value']);
+    }
+
+    
+
+    public static function getProfilesWithSourceId($forPlace = 'buttonTypeNew'): array {
+
+        $profiles = self::getProfiles();
+
+        $result = [];
+
+        foreach ($profiles as $profile_id) {
+
+            $options = ProfileOptions::getOptionsArray($profile_id );
+
+            /* get and check source post id */
+            $source_id = ProfileOptions::getProfileOptionValue($options, Constants::OPTION_NAME_SOURCE_ID);
+            if(!$source_id){
+                continue;
+            }
+
+            /* check if button is enabled */
+            if(!ProfileOptions::getProfileOptionValue($options,'enableButton')){
+                continue;
+            }
+
+            /* check if button  enable for current place */
+            if(!ProfileOptions::getProfileOptionValue($options, $forPlace)){
+                continue;
+            }
+
+            /* get label for button */
+            $labelButton = ProfileOptions::getProfileOptionValue($options,'labelButton');
+            if(!$labelButton){
+                $profile = self::getProfile($profile_id);
+                $profile_title = $profile instanceof \WP_Post ? '['.$profile->post_title.']' : '';
+                $labelButton = 'New with Duplicate Post ' . $profile_title;
+            }
+
+            $result[] = array('id' => $profile_id, 'source_id' => $source_id, 'labelButton' => $labelButton);
+        }
+
+        return $result;
+    }
+        
 }

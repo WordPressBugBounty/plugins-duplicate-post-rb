@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -66,5 +66,39 @@ class PostDuplicator implements DuplicatorInterface {
         Logger::add(  Actions::COPY, $originalId, $new_id );
 
         return $new_id;
+    }
+
+    public function create_duplicate(  int $profile_id ): array {
+
+        $profile_id = \absint( $profile_id );
+
+        if ( ! $profile_id ) {
+            throw new \InvalidArgumentException( 'Invalid profile ID.' );
+        }
+
+        if ( ! Profile::isProfileExists( $profile_id ) ) {
+            throw new \InvalidArgumentException( 'Profile not found.' );
+        }
+
+        $originalId = Profile::getProfileSourceId( $profile_id );
+
+        if ( ! $originalId ) {
+            throw new \InvalidArgumentException( 'Don\'t have source  ID. Please select a source in profile options.' );
+        }
+
+        $original = \get_post( $originalId );
+
+        if ( ! $original || ! ( $original instanceof \WP_Post ) ) {
+            throw new \InvalidArgumentException( 'Post not found.' );
+        }
+
+        $options_manager = new OptionsManager(  );
+        $processor       = new PostProcessor( $options_manager );
+
+        $new_id = $processor->processPost( $originalId, $profile_id );
+
+        Logger::add(  Actions::COPY, $originalId, $new_id );
+
+        return array('source_id' => $originalId, 'new_id' => $new_id);
     }
 }

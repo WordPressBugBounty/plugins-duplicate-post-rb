@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -16,6 +16,7 @@ defined('WPINC') || exit;
 interface DuplicatorInterface
 {
     public function duplicate(int $id, int $profile_id = 0): int;
+    public function create_duplicate(int $profile_id): array;
     public function supports(string $type): bool;
     public function is_allowed_special_post(int $id): int; //return 1 if allowed, 0 if not allowed, -1 if not special type
 }

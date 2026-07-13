@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -285,10 +285,10 @@ class REST_Profile_Controller extends REST_Controller
 
         $filtered_profiles = array();
 
-        $default_profile_id = Profile::getDefaultProfileId();
+        //$default_profile_id = Profile::getDefaultProfileId();
 
         foreach ($profiles as $id => $profile) {
-            $profile[ 'default_profile' ] = $default_profile_id == $id ? true : false;
+            //$profile[ 'default_profile' ] = $default_profile_id == $id ? true : false;
             $filtered_profiles[ $id ]     = $profile;
         }
 
@@ -326,22 +326,48 @@ class REST_Profile_Controller extends REST_Controller
             return array();
         }
 
-        $default_profile_id = (int) get_option(Constants::OPTION_NAME_DEFAULT_PROFILE, 0);
+        $default_profile_id = Profile::getDefaultProfileId();
 
         $profiles = array();
         foreach ($all_profiles as $profile) {
+            
+            // get profile options and source post id if exist and user has permission to edit the source post
+            $options = get_post_meta($profile->ID, Constants::OPTION_NAME, true);
+
             $profiles[ $profile->ID ] = array(
                 'id'              => $profile->ID,
                 'title'           => $profile->post_title,
                 'default_profile' => $default_profile_id == $profile->ID,
+                'source_post_id'    => self::get_source_post_id($options),
             );
         }
 
-        // if (! is_array($profiles)) {
-        //     $profiles = array();
-        // }
-
         return $profiles;
+    }
+
+
+    /**
+     * Get source post id
+     * 
+     * @param array $options
+     * @return int
+     */
+    private static function get_source_post_id($options){
+        $source_post_id = 0;
+
+        if( 
+            !is_array($options) || 
+            !isset($options['sourcePostId']) || 
+            !is_numeric($options['sourcePostId']) || 
+            $options['sourcePostId'] <= 0
+        ){
+            return $source_post_id;
+        }
+
+        if(User::canEditPost($options['sourcePostId'])){
+            $source_post_id = absint($options['sourcePostId']);
+        }
+        return $source_post_id;
     }
 
     /**

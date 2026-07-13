@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -31,12 +31,20 @@ class ProfileExporter {
         'rb-duplicate-post-options',
     );
 
+    const EXPORT_FORMAT_VERSION = '1.0';
+
     /**
      * Exports multiple profiles and triggers file download.
      *
      * @param array $profile_ids Array of profile IDs to export.
      */
     public static function export_profiles(  array $profile_ids ) {
+        // Sanitize profile IDs
+        $profile_ids = array_map( 'absint', $profile_ids );
+        $profile_ids = array_unique( $profile_ids );
+        $profile_ids = array_filter( $profile_ids ); 
+
+        // Check if any profile IDs provided
         if ( empty( $profile_ids ) ) {
             self::send_error_response( 'No profile IDs provided.' );
             return;
@@ -204,7 +212,7 @@ class ProfileExporter {
         if ( ! headers_sent() ) {
             header( 'Content-Type: application/json; charset=utf-8' );
             header( 'Content-Disposition: attachment; filename="' . self::DEFAULT_FILENAME . '"' );
-            header( 'Content-Length: ' . strlen( $content ) );
+            header( 'Content-Length: ' . mb_strlen( $content, '8bit' ) );
             header( 'Cache-Control: no-cache, no-store, must-revalidate' );
             header( 'Pragma: no-cache' );
             header( 'Expires: 0' );
@@ -221,7 +229,7 @@ class ProfileExporter {
      */
     private static function get_export_metadata(): array {
         return array(
-            'version' => '1.0',
+            'version' => self::EXPORT_FORMAT_VERSION,
             'exported_at' => current_time( 'mysql' ),
             'site_url' => home_url(),
             'wordpress_version' => get_bloginfo( 'version' ),

@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -19,7 +19,8 @@ use rbDuplicatePost\cli\CliUtils;
 use WP_CLI;
 
 class Commands
-{
+{   
+    const PROFILES_LIMIT = 20;
 
     public function __construct()
     {
@@ -90,7 +91,7 @@ class Commands
 
     public function profiles($args, $assoc_args)
     {
-        $profiles = Profile::getProfiles(20, '');
+        $profiles = Profile::getProfiles( self::PROFILES_LIMIT, '');
 
         WP_CLI::success("RB Duplicate Post Profiles:");
 

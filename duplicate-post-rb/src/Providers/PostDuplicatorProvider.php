@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -25,19 +25,20 @@ class PostDuplicatorProvider implements DuplicatorInterface
     }
 
     public function is_allowed_special_post(int $id): int { //return 1 if allowed, 0 if not allowed, -1 if not special type
-        if(!$id){
-            return -1;
-        }
-        $type = get_post_type($id); 
-        if(!$type){
-            return -1;
-        }
-        return PostTypes::is_allowed_special_type($type);
+       
+        $d = new PostDuplicator();
+        return $d->is_allowed_special_post($id);
     }
 
     public function duplicate(int $id, int $profile_id = 0): int
     {
         $d = new PostDuplicator();
         return $d->duplicate($id, $profile_id);
+    }
+
+    public function create_duplicate(int $profile_id): array
+    {
+        $d = new PostDuplicator();
+        return $d->create_duplicate($profile_id);
     }
 }

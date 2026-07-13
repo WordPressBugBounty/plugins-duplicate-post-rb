@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -107,7 +107,15 @@ class ClassicEditorButtonCopy
         $label = esc_html__('Copy', 'duplicate-post-rb');
 
         return sprintf(
-            '<a href="#" role="button" class="rb-duplicate-post-copy-button" data-post-id="%d" data-no-refresh="1">%s</a>',
+            '<a href="#" 
+                role="button" 
+                class="rb-duplicate-post-copy-button" 
+                data-duplicate-action-type="duplicate" 
+                data-post-id="%d" 
+                data-no-refresh="1"
+                >
+                %s
+            </a>',
             $post->ID,
             $label
         );

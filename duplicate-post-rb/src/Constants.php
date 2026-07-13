@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -45,6 +45,7 @@ class Constants
 
     // Notification types
     public const NOTIFICATION_TYPE_POST_COPIED = 'POST_COPIED';   
+    public const NOTIFICATION_TYPE_POST_CREATED = 'POST_CREATED';
 
     /* Allowed post statuses */
     public const ALLOWED_POST_STATUSES = ['publish', 'private', 'draft', 'future', 'pending', 'inherit']; //, 'trash'
@@ -55,6 +56,9 @@ class Constants
 
     /* Log table name */
     public const LOG_TABLE_NAME = 'rb_duplicate_post_log';
+
+    /* Option name for storing source post ID */
+    public const OPTION_NAME_SOURCE_ID = 'sourcePostId';
 
 
     /* Action buttons count */

@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -209,6 +209,34 @@ class ProfileOptionsConfig {
                 'group'    => 'general',
             ),
 
+            'buttonTypePostListing'  => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+                'group'    => 'general',
+            ),
+
+            'buttonTypePageListing'  => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+                'group'    => 'general',
+            ),
+
+            'buttonTypeNew'  => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+                'group'    => 'general',
+            ),
+
+            'buttonTypeEditor'  => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+                'group'    => 'general',
+            ),
+
             'withoutConfirmationButton'   => array(
                 'type'     => 'checkbox',
                 'sanitize' => 'boolean',
@@ -254,6 +282,13 @@ class ProfileOptionsConfig {
                 'type'     => 'text',
                 'sanitize' => 'string',
                 'default'  => '#2271b1',
+                'group'    => 'general',
+            ),
+
+            'sourcePostId'         => array(
+                'type'     => 'text',
+                'sanitize' => 'string', //sanitize_post_id
+                'default'  => '0',
                 'group'    => 'general',
             ),
 

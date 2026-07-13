@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -53,6 +53,25 @@ class REST_DuplicatePost_Controller extends REST_Controller {
 
         register_rest_route(
             $this->namespace,
+            '/create_from_profile/(?P<profile_id>[0-9]+)',
+            array(
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => array( self::class, 'handle_create' ),
+                'permission_callback' => array( self::class, 'handle_create_permissions_check' ),
+                'args'                => array(
+                    'profile_id' => array(
+                        'description'       => __( 'RB Duplicate Post Profile ID.', 'duplicate-post-rb' ),
+                        'type'              => 'integer',
+                        'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_profile_id',   
+                        'validate_callback' => 'rbDuplicatePost\restapi\Validations::validate_profile_id',
+                    ),
+                ),
+            ),
+
+        );
+
+        register_rest_route(
+            $this->namespace,
             '/duplicate/(?P<post_ids>[0-9,]+)/profile/(?P<profile_id>[0-9]+)',
             array(
                 'methods'             => WP_REST_Server::CREATABLE,
@@ -74,6 +93,87 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                 ),
             ),
 
+        );
+
+        
+    }
+
+
+    public static function handle_create( WP_REST_Request $request ) //: WP_REST_Response
+     {
+
+        $profile_id =  absint( $request->get_param( 'profile_id' ) );
+     
+         if ( !$profile_id ) {
+             return self::rest_response_error(
+                 'invalid_request',  
+                 'Missing Profile ID',
+                 400 
+             );
+         }
+        
+        $duplicator = DuplicatorFactory::make( 'post' );
+
+         if (  $duplicator==null ) {
+             return self::rest_response_error(
+                 'invalid_request',  
+                 'Service not available',
+                 500
+             );
+         }
+
+        $no_refresh = $request->get_param( 'no_refresh' ) ? 1 : 0 ;
+
+        $results    = array();
+    
+        try {
+            $ids = $duplicator->create_duplicate( $profile_id );
+            
+            if( is_array($ids) && isset($ids['source_id']) && isset($ids['new_id']) ){
+                $id = $ids['source_id'] ?? 0;
+                $new_id = $ids['new_id'] ?? 0;
+
+                 $results[] = array(
+                    'id'    => $id,
+                    'duplicate_id'=> $new_id,
+                    'success' => true,
+                    'code' => 'create_success',
+                );
+            } else {
+                $results[] = array(
+                    'id'    => 0,
+                    'duplicate_id'=> false,
+                    'success' => false,
+                    'code' => 'error_during_creation',
+                    'error' => 'Unexpected result from duplicator',
+                );
+            }
+           
+        } catch ( \Exception $e ) {
+            $results[] =  array(
+                'id'    => $id,
+                'duplicate_id'=> false,
+                'success' => false,
+                'code' => 'error_during_creation',
+                'error' => $e->getMessage(),
+            );
+            //TODO : add error to log
+            // $results[ $id ] = array( 'error' => $e->getMessage() );
+        }
+
+        if(!$no_refresh){
+            $notification = new Notification();
+            $notification->set_notification(  array( 
+                'type'=>Constants::NOTIFICATION_TYPE_POST_CREATED, 
+                'data' => $results
+             ) );
+        }
+
+        return self::rest_response(
+            $results, 
+            'success', 
+            'Operation success', 
+            201
         );
     }
 
@@ -169,6 +269,25 @@ class REST_DuplicatePost_Controller extends REST_Controller {
             201
         );
     }
+
+    public static function handle_create_permissions_check( $request ) {
+        $id = absint( $request->get_param( "profile_id" ) );
+
+        if(!$id) {
+            return false;
+        }
+
+        if ( ! User::canEditPost([$id])  ||  ! User::canPublishPosts() ) {
+               return self::rest_response_error(
+                 'cannot_access',
+                 __( 'Sorry, you cannot access.', 'duplicate-post-rb' ),
+                 rest_authorization_required_code(),
+               );
+        }
+
+        return true;
+    }
+
 
     public static function handle_duplicate_permissions_check( $request ) {
         $ids = $request->get_param( "post_ids" ) ;

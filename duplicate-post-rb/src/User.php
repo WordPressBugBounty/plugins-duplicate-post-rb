@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.1
+*      Version: 1.6.7
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -48,6 +48,11 @@ class User {
     public static function canPublishPosts(): bool
     { 
         return current_user_can('publish_posts');
+    }
+
+    public static function canCreatePosts(): bool
+    { 
+        return current_user_can('edit_posts');
     }
     /**
      * Check if the current user can edit posts.
