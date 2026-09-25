@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.7
+*      Version: 1.6.8
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -40,6 +40,7 @@ use rbDuplicatePost\AfterCopyTransformers\MetaTransformer;
 use rbDuplicatePost\AfterCopyTransformers\TermTransformer;
 use rbDuplicatePost\AfterCopyTransformers\GUIDTransformer;
 use rbDuplicatePost\AfterCopyTransformers\ACFTransformer;
+use rbDuplicatePost\AfterCopyTransformers\YoastSeoTransformer;
 
 
 use rbDuplicatePost\Contexts\TransformerContext;
@@ -105,6 +106,7 @@ class PostProcessor {
             new FeaturedImageTransformer(),
             //new GUIDTransformer(),
             new ACFTransformer(),
+            new YoastSeoTransformer(),
             
             /* Important this is last */
             new HistoryTransformer(),

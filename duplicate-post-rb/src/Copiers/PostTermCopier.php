@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.7
+*      Version: 1.6.8
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -36,51 +36,136 @@ class PostTermCopier {
     );
 
     /**
+     * Copies ALL taxonomies from source to target post using CopyOperationContext,
+     * also returning a per-taxonomy source_term_id => target_term_id map.
+     *
+     * Use this (rather than copy_all_taxonomies()) whenever the caller needs
+     * to translate a specific source term ID to its target equivalent — e.g.
+     * YoastSeoCopier translating the Yoast SEO primary-term ID
+     * (_yoast_wpseo_primary_{taxonomy}) after terms have been copied.
+     *
+     * @param CopyOperationContext $operation
+     * @return array{
+     *     terms: array<string, array<int>>,
+     *     map: array<string, array<int,int>>
+     * }
+     */
+    public static function copy_all_taxonomies_with_map( CopyOperationContext $operation ): array {
+        $source = $operation->get_source();
+        $target = $operation->get_target();
+
+        // Get all terms from source post
+        $source_terms = self::get_post_terms_grouped( $source );
+
+        // Copy all taxonomies
+        $result = self::copy_taxonomies_with_map( $source_terms, $source, $target );
+
+        // Assign copied terms to target post
+        if ( ! empty( $result['terms'] ) ) {
+            self::assign_terms_to_post( $result['terms'], $target );
+        }
+
+        return $result;
+    }
+
+    /**
      * Copies ALL taxonomies from source to target post using CopyOperationContext.
      *
      * @param CopyOperationContext $operation
      * @return array<string, array<int>> Copied terms grouped by taxonomy
      */
     public static function copy_all_taxonomies( CopyOperationContext $operation ): array {
+        return self::copy_all_taxonomies_with_map( $operation )['terms'];
+    }
+
+    /**
+     * Copies ONLY CUSTOM (non-built-in) taxonomies associated with a post,
+     * also returning a per-taxonomy source_term_id => target_term_id map.
+     *
+     * @param CopyOperationContext $operation
+     * @return array{
+     *     terms: array<string, array<int>>,
+     *     map: array<string, array<int,int>>
+     * }
+     */
+    public static function copy_custom_taxonomies_with_map( CopyOperationContext $operation ): array {
         $source = $operation->get_source();
         $target = $operation->get_target();
-        
+
         // Get all terms from source post
-        $source_terms = self::get_post_terms_grouped($source);
+        $source_terms = self::get_post_terms_grouped( $source );
+
+        // Filter to custom taxonomies only
+        $custom_terms = self::filter_custom_taxonomies( $source_terms, $source );
 
         // Copy all taxonomies
-        $copied_terms = self::copy_taxonomies( $source_terms, $source, $target );
+        $result = self::copy_taxonomies_with_map( $custom_terms, $source, $target );
 
         // Assign copied terms to target post
-        if ( ! empty( $copied_terms ) ) {   
-            self::assign_terms_to_post(  $copied_terms, $target );
+        if ( ! empty( $result['terms'] ) ) {
+            self::assign_terms_to_post( $result['terms'], $target );
         }
 
-        return $copied_terms;
+        return $result;
     }
 
     /**
      * Copies ONLY CUSTOM (non-built-in) taxonomies associated with a post.
      */
     public static function copy_custom_taxonomies( CopyOperationContext $operation ): array {
-        $source = $operation->get_source();
-        $target = $operation->get_target();
-        
-        // Get all terms from source post
-        $source_terms = self::get_post_terms_grouped($source);
+        return self::copy_custom_taxonomies_with_map( $operation )['terms'];
+    }
 
-        // Filter to custom taxonomies only
-        $custom_terms = self::filter_custom_taxonomies( $source_terms, $source );
-        
-        // Copy all taxonomies
-        $copied_terms = self::copy_taxonomies( $custom_terms, $source, $target );
-
-        // Assign copied terms to target post
-        if ( ! empty( $copied_terms ) ) {   
-            self::assign_terms_to_post(  $copied_terms, $target );
+    /**
+     * Copies terms from source to target blog for a specific taxonomy, also
+     * returning a source_term_id => target_term_id map.
+     *
+     * On the same blog, IDs are reused as-is (see copy_terms()), so the map
+     * returned is the identity map for the given IDs — callers can rely on
+     * the map being present regardless of whether source and target share
+     * a blog.
+     *
+     * @param array $source_term_ids
+     * @param string $taxonomy
+     * @param BlogPostContext $source
+     * @param BlogPostContext $target
+     * @return array{
+     *     ids: array<int>,
+     *     map: array<int,int>
+     * }
+     */
+    public static function copy_terms_with_map(
+        array $source_term_ids,
+        string $taxonomy,
+        BlogPostContext $source,
+        BlogPostContext $target
+    ): array {
+        if ( empty( $source_term_ids ) ) {
+            return array( 'ids' => array(), 'map' => array() );
         }
 
-        return $copied_terms;
+        // If same blog, return original IDs — map is the identity map.
+        if ( $source->get_blog_id() === $target->get_blog_id() ) {
+            $map = array();
+            foreach ( $source_term_ids as $term_id ) {
+                $map[ (int) $term_id ] = (int) $term_id;
+            }
+            return array( 'ids' => $source_term_ids, 'map' => $map );
+        }
+
+        $new_term_ids = array();
+        $map = array();
+        $copied_cache = array(); // Cache for already copied terms
+
+        foreach ( $source_term_ids as $term_id ) {
+           $new_id = self::copy_single_term( $term_id, $taxonomy, $source, $target, $copied_cache );
+            if ( $new_id ) {
+                $new_term_ids[] = $new_id;
+                $map[ (int) $term_id ] = (int) $new_id;
+            }
+        }
+
+        return array( 'ids' => $new_term_ids, 'map' => $map );
     }
 
     /**
@@ -92,26 +177,7 @@ class PostTermCopier {
         BlogPostContext $source,
         BlogPostContext $target
     ): array {
-        if ( empty( $source_term_ids ) ) {
-            return array();
-        }
-
-        // If same blog, return original IDs
-        if ( $source->get_blog_id() === $target->get_blog_id() ) {
-            return $source_term_ids;
-        }
-
-        $new_term_ids = array();
-        $copied_cache = array(); // Cache for already copied terms
-
-        foreach ( $source_term_ids as $term_id ) {
-           $new_id = self::copy_single_term( $term_id, $taxonomy, $source, $target, $copied_cache );
-            if ( $new_id ) {
-                $new_term_ids[] = $new_id;
-            }
-        }
-
-        return $new_term_ids;
+        return self::copy_terms_with_map( $source_term_ids, $taxonomy, $source, $target )['ids'];
     }
 
     /**
@@ -251,24 +317,32 @@ class PostTermCopier {
             }
 
             if ( \is_wp_error( $result ) ) {
-                // Final fallback: try to find by name + parent
-                $existing_by_name = self::find_term_by_name_and_parent(
-                    $term_data['name'],
-                    $current_parent,
-                    $taxonomy
-                );
-                
-                if ( $existing_by_name ) {
+                // Final fallback: wp_insert_term() returns error code
+                // 'term_exists' with the existing term's ID already attached
+                // as the error data (see WP core source of wp_insert_term())
+                // — no extra lookup query needed, just read it off the error.
+                $existing_term_id = self::get_existing_term_id_from_error( $result );
+                $existing_term    = $existing_term_id ? \get_term( $existing_term_id, $taxonomy ) : false;
+
+                if ( $existing_term && ! \is_wp_error( $existing_term ) ) {
+
+                    self::copy_term_meta(
+                        $term_data['term_id'],
+                        $existing_term_id,
+                        $source,
+                        $target
+                    );
+
                     // Update description if different
-                    if ( $existing_by_name->description !== $term_data['description'] ) {
-                        \wp_update_term( $existing_by_name->term_id, $taxonomy, array(
+                    if ( $existing_term->description !== $term_data['description'] ) {
+                        \wp_update_term( $existing_term_id, $taxonomy, array(
                             'description' => $term_data['description']
                         ));
                     }
-                    $current_parent = (int) $existing_by_name->term_id;
+                    $current_parent = $existing_term_id;
                     continue;
                 }
-                
+
                 // Unable to create or find term
                 BlogPostContext::maybe_restore_blog( $did_switch );
                 return 0;
@@ -345,14 +419,46 @@ class PostTermCopier {
     }
 
     /**
-     * Copies ALL taxonomies associated with a post (including built-in).
+     * Extracts the conflicting term's ID from a wp_insert_term() WP_Error.
+     *
+     * When wp_insert_term() fails because a term with the same name/slug
+     * already exists at that level of the hierarchy, it returns error code
+     * 'term_exists' with the existing term_id already attached as the
+     * error's data — so no extra get_terms()/get_term_by() lookup is
+     * needed to recover it.
+     *
+     * @param mixed $error Expected to be a WP_Error, but guarded either way.
+     * @return int|false
      */
-    public static function copy_taxonomies(
+    private static function get_existing_term_id_from_error( $error ) {
+        if ( ! \is_wp_error( $error ) ) {
+            return false;
+        }
+
+        $term_id = $error->get_error_data( 'term_exists' );
+
+        return $term_id ? (int) $term_id : false;
+    }
+
+    /**
+     * Copies ALL taxonomies associated with a post (including built-in),
+     * also returning a per-taxonomy source_term_id => target_term_id map.
+     *
+     * @param array $source_terms
+     * @param BlogPostContext $source
+     * @param BlogPostContext $target
+     * @return array{
+     *     terms: array<string, array<int>>,
+     *     map: array<string, array<int,int>>
+     * }
+     */
+    public static function copy_taxonomies_with_map(
         array $source_terms,
         BlogPostContext $source,
         BlogPostContext $target
     ): array {
         $copied_terms = array();
+        $term_map = array();
 
         foreach ( $source_terms as $taxonomy => $term_ids ) {
             if ( ! is_string( $taxonomy ) || ! is_array( $term_ids ) ) {
@@ -368,15 +474,32 @@ class PostTermCopier {
                 continue;
             }
 
-            $copied_terms[ $taxonomy ] = self::copy_terms(
+            $result = self::copy_terms_with_map(
                 $term_ids,
                 $taxonomy,
                 $source,
                 $target
             );
+
+            $copied_terms[ $taxonomy ] = $result['ids'];
+            $term_map[ $taxonomy ] = $result['map'];
         }
 
-        return $copied_terms;
+        return array(
+            'terms' => $copied_terms,
+            'map'   => $term_map,
+        );
+    }
+
+    /**
+     * Copies ALL taxonomies associated with a post (including built-in).
+     */
+    public static function copy_taxonomies(
+        array $source_terms,
+        BlogPostContext $source,
+        BlogPostContext $target
+    ): array {
+        return self::copy_taxonomies_with_map( $source_terms, $source, $target )['terms'];
     }
 
     /**

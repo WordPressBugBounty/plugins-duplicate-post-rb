@@ -1,7 +1,7 @@
 <?php
 /* 
 *      RB Duplicate Post     
-*      Version: 1.6.7
+*      Version: 1.6.8
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
@@ -24,6 +24,12 @@ class PostMetaCopier {
 
     /**
      * List of meta keys to exclude from copying (protected/system keys).
+     *
+     * An entry ending in '*' is treated as a prefix match, excluding every
+     * meta key that starts with that prefix (e.g. '_yoast_wpseo_*' excludes
+     * every Yoast SEO postmeta key, including dynamic ones such as
+     * '_yoast_wpseo_primary_{taxonomy}'). Every other entry is matched
+     * exactly. See is_key_excluded().
      */
     const EXCLUDED_META_KEYS = array(
         '_edit_last',
@@ -32,7 +38,18 @@ class PostMetaCopier {
         '_wp_old_date',
 
         'rb-duplicate-post-history',
-			
+
+        // Yoast SEO postmeta is handled entirely by YoastSeoCopier, which
+        // applies its own whitelist, conflict rules (overwrite flag) and
+        // special-case handling (canonical/redirect never copied, primary
+        // term remapped via PostTermCopier's term map, OpenGraph/Twitter
+        // images copied via PostMediaCopier::copy_attachment_by_id(),
+        // indexable rebuilt afterwards). Blind-copying it here would copy
+        // source-post URLs (canonical/redirect) verbatim onto the new post,
+        // and would leave nothing "empty" for YoastSeoCopier's default
+        // non-overwrite behaviour to fill in.
+        '_yoast_wpseo_*',
+
         //'_thumbnail_id',
         //'_wp_page_template',
         //'_wp_attachment_metadata',
@@ -159,8 +176,8 @@ class PostMetaCopier {
         $excluded_keys = self::get_excluded_meta_keys();
 
         foreach ( $meta as $key => $values ) {
-            // Skip excluded keys
-            if ( in_array( $key, $excluded_keys, true ) ) {
+            // Skip excluded keys (exact or prefix match, see is_key_excluded())
+            if ( self::is_key_excluded( $key, $excluded_keys ) ) {
                 continue;
             }
 
@@ -187,8 +204,8 @@ class PostMetaCopier {
         $excluded_keys = self::get_excluded_meta_keys();
 
         foreach ( $meta as $key => $values ) {
-            // Skip excluded keys
-            if ( in_array( $key, $excluded_keys, true ) ) {
+            // Skip excluded keys (exact or prefix match, see is_key_excluded())
+            if ( self::is_key_excluded( $key, $excluded_keys ) ) {
                 continue;
             }
 
@@ -207,6 +224,40 @@ class PostMetaCopier {
         }
 
         return $filtered;
+    }
+
+    /**
+     * Checks whether a meta key is excluded, per EXCLUDED_META_KEYS semantics.
+     *
+     * An excluded-list entry ending in '*' is treated as a prefix match
+     * (e.g. '_yoast_wpseo_*' matches '_yoast_wpseo_title',
+     * '_yoast_wpseo_primary_category', etc). Every other entry is matched
+     * exactly.
+     *
+     * @param string $key The meta key being checked.
+     * @param array $excluded_keys The exclusion list (exact keys and/or 'prefix*' entries).
+     * @return bool
+     */
+    private static function is_key_excluded( string $key, array $excluded_keys ): bool {
+        foreach ( $excluded_keys as $excluded ) {
+            if ( ! is_string( $excluded ) || $excluded === '' ) {
+                continue;
+            }
+
+            if ( substr( $excluded, -1 ) === '*' ) {
+                $prefix = substr( $excluded, 0, -1 );
+                if ( $prefix !== '' && strpos( $key, $prefix ) === 0 ) {
+                    return true;
+                }
+                continue;
+            }
+
+            if ( $key === $excluded ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

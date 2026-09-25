@@ -1,7 +1,7 @@
 <?php
     /* 
 *      RB Duplicate Post     
-*      Version: 1.6.7
+*      Version: 1.6.8
 *      By RbPlugin
 *
 *      Contact: https://robosoft.co 
