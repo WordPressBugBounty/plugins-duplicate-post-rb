@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -67,7 +67,9 @@ class ProfileType
 
             'show_in_menu' => false,
 
-            'show_in_rest' => true,
+            // profiles are read and written through the plugin's own routes (rb_duplicate_post/v1),
+            // which check who may see them; the core wp/v2 route would list them to anyone
+            'show_in_rest' => false,
             'rest_base'    => 'rb_duplicate_post',
 
         );

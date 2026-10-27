@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -33,7 +33,7 @@ class PluginList {
 		if( $file == 'duplicate-post-rb/duplicate-post-rb.php' && current_user_can('manage_options') ) {
 			array_unshift(
 				$links,
-				sprintf( '<a href="%s">%s</a>', esc_attr( Utils::getSettingsPageUrl() ), __( 'Settings' ) )
+				sprintf( '<a href="%s">%s</a>', esc_attr( Utils::getSettingsPageUrl() ), __( 'Settings', 'duplicate-post-rb' ) )
 			);
 		}
 

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -20,6 +20,7 @@ use rbDuplicatePost\Notification;
 use rbDuplicatePost\Constants;
 use rbDuplicatePost\User;
 use rbDuplicatePost\ProCheck;
+use rbDuplicatePost\Helpers\Multisite;
 
 use WP_REST_Request;
 use WP_REST_Response;
@@ -47,7 +48,31 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                         'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_post_ids',
                         'validate_callback' => 'rbDuplicatePost\restapi\Validations::validate_post_ids',
                     ),
+                    'target_blog_id' => array(
+                        'description'       => __( 'Target Multisite blog ID (0 = current).', 'duplicate-post-rb' ),
+                        'type'              => 'integer',
+                        'required'          => false,
+                        'default'           => 0,
+                        'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_blog_id',
+                    ),
+                    'source_blog_id' => array(
+                        'description'       => __( 'Source Multisite blog ID (0 = current).', 'duplicate-post-rb' ),
+                        'type'              => 'integer',
+                        'required'          => false,
+                        'default'           => 0,
+                        'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_blog_id',
+                    ),
                 ),
+            ),
+        );
+
+        register_rest_route(
+            $this->namespace,
+            '/sites',
+            array(
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => array( self::class, 'handle_list_sites' ),
+                'permission_callback' => array( self::class, 'handle_list_sites_permissions_check' ),
             ),
         );
 
@@ -90,6 +115,20 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                         'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_post_ids',
                         'validate_callback' => 'rbDuplicatePost\restapi\Validations::validate_post_ids',
                     ),
+                    'target_blog_id' => array(
+                        'description'       => __( 'Target Multisite blog ID (0 = current).', 'duplicate-post-rb' ),
+                        'type'              => 'integer',
+                        'required'          => false,
+                        'default'           => 0,
+                        'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_blog_id',
+                    ),
+                    'source_blog_id' => array(
+                        'description'       => __( 'Source Multisite blog ID (0 = current).', 'duplicate-post-rb' ),
+                        'type'              => 'integer',
+                        'required'          => false,
+                        'default'           => 0,
+                        'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_blog_id',
+                    ),
                 ),
             ),
 
@@ -124,10 +163,15 @@ class REST_DuplicatePost_Controller extends REST_Controller {
 
         $no_refresh = $request->get_param( 'no_refresh' ) ? 1 : 0 ;
 
+        // the answers to the Assistant's questions, from the copy dialog
+        \rbDuplicatePost\Scenario\Scenario::set_answers( (array) $request->get_param( 'answers' ) );
+
         $results    = array();
-    
+        $id         = 0;
+
         try {
-            $ids = $duplicator->create_duplicate( $profile_id );
+            $target_blog_id = absint( $request->get_param( 'target_blog_id' ) );
+            $ids = $duplicator->create_duplicate( $profile_id, $target_blog_id );
             
             if( is_array($ids) && isset($ids['source_id']) && isset($ids['new_id']) ){
                 $id = $ids['source_id'] ?? 0;
@@ -136,6 +180,8 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                  $results[] = array(
                     'id'    => $id,
                     'duplicate_id'=> $new_id,
+                    'edit_url' => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? (string) get_edit_post_link( $new_id, 'raw' ) : '',
+                    'title'    => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? get_the_title( $new_id ) : '',
                     'success' => true,
                     'code' => 'create_success',
                 );
@@ -190,12 +236,21 @@ class REST_DuplicatePost_Controller extends REST_Controller {
             );
         }
  
+        // 1 to 100 copies, as the dialog says: more is refused, not silently changed
+        if ( absint( $request->get_param( 'copies' ) ) > 100 ) {
+            return self::rest_response_error(
+                'invalid_request',
+                __( 'At most 100 copies at a time.', 'duplicate-post-rb' ),
+                400
+            );
+        }
+
         $profile_id = absint( $request->get_param( 'profile_id' ) );
         if ( !$profile_id ) {
             $profile_id = Profile::getDefaultProfileId();
         }
 
-        
+
         $duplicator = DuplicatorFactory::make( 'post' );
 
          if (  $duplicator==null ) {
@@ -206,10 +261,27 @@ class REST_DuplicatePost_Controller extends REST_Controller {
              );
          }
 
-        $copies = absint($request->get_param( 'copies' ));
-        $copies = !$copies || $copies>100 ? 1 : $copies;
+        // "Advanced settings" of the copy dialog: which elements this copy gets, for this request only
+        $overrides = self::element_overrides( $request->get_param( 'options' ) );
+        $override_filter = null;
+        if ( $overrides ) {
+            $override_filter = function ( $options ) use ( $overrides ) {
+                foreach ( $overrides as $key => $value ) {
+                    if ( isset( $options[ $key ] ) && is_array( $options[ $key ] ) ) {
+                        $options[ $key ]['value'] = $value;
+                    }
+                }
+                return $options;
+            };
+            add_filter( 'rb_duplicate_post_copy_options', $override_filter );
+        }
+
+        $copies = max( 1, absint( $request->get_param( 'copies' ) ) );
 
         $no_refresh = $request->get_param( 'no_refresh' ) ? 1 : 0 ;
+
+        // the answers to the Assistant's questions, from the copy dialog
+        \rbDuplicatePost\Scenario\Scenario::set_answers( (array) $request->get_param( 'answers' ) );
 
         $results    = array();
 
@@ -231,10 +303,15 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                         continue;
                     }
 
-                    $newId = $duplicator->duplicate( $id, $profile_id );
+                    $target_blog_id = absint( $request->get_param( 'target_blog_id' ) );
+                    $source_blog_id = absint( $request->get_param( 'source_blog_id' ) );
+                    $newId = $duplicator->duplicate( $id, $profile_id, $target_blog_id, $source_blog_id );
                     $results[] = array(
                         'id'    => $id,
                         'duplicate_id'=> $newId,
+                        'edit_url' => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? (string) get_edit_post_link( $newId, 'raw' ) : '',
+                        'title'    => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? get_the_title( $newId ) : '',
+                        'target_blog_id' => $target_blog_id ? $target_blog_id : get_current_blog_id(),
                         'success' => true,
                         'code' => 'duplicate_success',
                     );
@@ -254,6 +331,10 @@ class REST_DuplicatePost_Controller extends REST_Controller {
             }
         }
 
+        if ( $override_filter ) {
+            remove_filter( 'rb_duplicate_post_copy_options', $override_filter );
+        }
+
         if(!$no_refresh){
             $notification = new Notification();
             $notification->set_notification(  array( 
@@ -270,6 +351,22 @@ class REST_DuplicatePost_Controller extends REST_Controller {
         );
     }
 
+    /**
+     * The element switches a copy may change for itself: copy* options only, as booleans.
+     */
+    private static function element_overrides( $raw ) {
+        if ( ! is_array( $raw ) ) {
+            return array();
+        }
+        $out = array();
+        foreach ( $raw as $key => $value ) {
+            if ( is_string( $key ) && preg_match( '/^copy[A-Z][A-Za-z]+$/', $key ) ) {
+                $out[ $key ] = (bool) rest_sanitize_boolean( $value );
+            }
+        }
+        return $out;
+    }
+
     public static function handle_create_permissions_check( $request ) {
         $id = absint( $request->get_param( "profile_id" ) );
 
@@ -277,7 +374,19 @@ class REST_DuplicatePost_Controller extends REST_Controller {
             return false;
         }
 
-        if ( ! User::canEditPost([$id])  ||  ! User::canPublishPosts() ) {
+        // a template is used, not edited: any profile serves whoever may copy here (as in the
+        // "+ New" menu); what it could give beyond the user's own rights is checked on the way -
+        // its source post here, the copy's author and status while the copy is made
+        if ( ! User::isAllowForCurrentUser() || ! User::canPublishPosts() ) {
+               return self::rest_response_error(
+                 'cannot_access',
+                 __( 'Sorry, you cannot access.', 'duplicate-post-rb' ),
+                 rest_authorization_required_code(),
+               );
+        }
+
+        $source_id = Profile::getProfileSourceId( $id );
+        if ( $source_id && ! Profile::canUseAsTemplate( $source_id ) ) {
                return self::rest_response_error(
                  'cannot_access',
                  __( 'Sorry, you cannot access.', 'duplicate-post-rb' ),
@@ -303,7 +412,10 @@ class REST_DuplicatePost_Controller extends REST_Controller {
             return false;
         }
 
-        if ( ! User::canEditPost( $ids ) ) {
+        // the roles allowed in the settings, as for the Copy buttons; the posts themselves
+        // are checked on the site they are copied from (on a network, IDs repeat across sites)
+        $source_blog_id = absint( $request->get_param( 'source_blog_id' ) );
+        if ( ! User::isAllowForCurrentUser() || ! Multisite::can_user_edit_posts_on_blog( $ids, $source_blog_id ) ) {
                return self::rest_response_error(
                  'cannot_access',
                  __( 'Sorry, you cannot access.', 'duplicate-post-rb' ),
@@ -312,5 +424,29 @@ class REST_DuplicatePost_Controller extends REST_Controller {
         }
 
         return true;
+    }
+
+
+    public static function handle_list_sites_permissions_check( $request ) {
+        return is_user_logged_in() && current_user_can( 'edit_posts' );
+    }
+
+    /**
+     * List Multisite blogs the current user can copy posts to.
+     */
+    public static function handle_list_sites( WP_REST_Request $request ) {
+        $sites = \rbDuplicatePost\Helpers\Multisite::get_available_target_blogs();
+        return self::rest_response(
+            array(
+                'sites'              => $sites,
+                'cross_site_enabled' => \rbDuplicatePost\Helpers\Multisite::is_cross_site_enabled(),
+                'media_mode'         => \rbDuplicatePost\Helpers\Multisite::get_media_mode(),
+                'current_blog_id'    => get_current_blog_id(),
+                'is_multisite'       => is_multisite(),
+            ),
+            'success',
+            'OK',
+            200
+        );
     }
 }

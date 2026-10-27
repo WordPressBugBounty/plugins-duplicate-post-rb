@@ -4,12 +4,14 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\Log;
+
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table
 
 defined('WPINC') || exit;
 
@@ -63,6 +65,7 @@ class Logger
             self::$table
         );
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         self::$tableExistsCache = (bool) self::$wpdb->get_var($query);
 
         return self::$tableExistsCache;
@@ -262,10 +265,12 @@ class Logger
         }
 
         $sql = self::$wpdb->prepare(
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
             "SELECT * FROM " . self::$table . " WHERE id = %d",
             $id
         );
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         $row = self::$wpdb->get_row($sql);
 
         if ($row && !empty($row->metadata)) {
@@ -299,9 +304,20 @@ class Logger
             $values[] = $args['action_type'];
         }
 
+        // a day range, YYYY-MM-DD, both ends included
+        if (!empty($args['from'])) {
+            $where[]  = 'date >= %s';
+            $values[] = $args['from'] . ' 00:00:00';
+        }
+        if (!empty($args['to'])) {
+            $where[]  = 'date <= %s';
+            $values[] = $args['to'] . ' 23:59:59';
+        }
+
         $limit  = isset($args['limit']) ? max(1, (int) $args['limit']) : 20;
         $offset = isset($args['offset']) ? max(0, (int) $args['offset']) : 0;
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         $sql = "SELECT * FROM " . self::$table;
 
         if ($where) {
@@ -313,8 +329,10 @@ class Logger
         $values[] = $limit;
         $values[] = $offset;
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is the query with %d/%s placeholders built above; the values are passed here
         $sql = self::$wpdb->prepare($sql, $values);
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         $results = self::$wpdb->get_results($sql);
 
         foreach ($results as $row) {
@@ -324,6 +342,24 @@ class Logger
         }
 
         return $results;
+    }
+
+    /**
+     * Delete every entry; returns how many there were
+     */
+    public static function clear(): int
+    {
+        self::init();
+
+        if (!self::tableExists()) {
+            return 0;
+        }
+
+        $count = self::count();
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
+        self::$wpdb->query("DELETE FROM " . self::$table);
+
+        return $count;
     }
 
     /**
@@ -350,6 +386,17 @@ class Logger
             $values[] = $args['action_type'];
         }
 
+        // a day range, YYYY-MM-DD, both ends included
+        if (!empty($args['from'])) {
+            $where[]  = 'date >= %s';
+            $values[] = $args['from'] . ' 00:00:00';
+        }
+        if (!empty($args['to'])) {
+            $where[]  = 'date <= %s';
+            $values[] = $args['to'] . ' 23:59:59';
+        }
+
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         $sql = "SELECT COUNT(*) FROM " . self::$table;
 
         if ($where) {
@@ -357,9 +404,11 @@ class Logger
         }
 
         if ($values) {
+            // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared -- $sql is the query with %d/%s placeholders built above; the values are passed here
             $sql = self::$wpdb->prepare($sql, $values);
         }
 
+        // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
         return (int) self::$wpdb->get_var($sql);
     }
 
@@ -383,6 +432,7 @@ class Logger
     //         $pattern
     //     );
 
+    // phpcs:ignore WordPress.DB.PreparedSQL.NotPrepared, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- the plugin's own log table ($wpdb->prefix + a constant); the values go through $wpdb->prepare()
     //     $results = self::$wpdb->get_results($sql);
 
     //     foreach ($results as $row) {

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -100,6 +100,13 @@ class REST_Profile_Controller extends REST_Controller
                             'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_profile_id',
                             'validate_callback' => 'rbDuplicatePost\restapi\Validations::validate_profile_id',
                         ),
+                        // a rename: the same rules as a new name (checked only when a title is sent)
+                        'title' => array(
+                            'type'              => 'string',
+                            'required'          => false,
+                            'sanitize_callback' => 'rbDuplicatePost\restapi\Sanitize::sanitize_profile_title',
+                            'validate_callback' => 'rbDuplicatePost\restapi\Validations::validate_profile_title',
+                        ),
                     ),
                 ),
                 array(
@@ -131,7 +138,7 @@ class REST_Profile_Controller extends REST_Controller
     public function get_item($request)
     {
         $profile_id = absint($request->get_param("profile_id"));
-        $last_viewed = str_ends_with( $request->get_route(), '/last_viewed' );
+        $last_viewed = '/last_viewed' === substr( $request->get_route(), -strlen( '/last_viewed' ) );
 
         if (! $profile_id) {
             return self::rest_response_error(
@@ -168,8 +175,7 @@ class REST_Profile_Controller extends REST_Controller
      */
     public function create_item($request)
     {
-        $title = sanitize_text_field($request->get_param("title"));
-        $title = substr($title, 0, 200);
+        $title = Profile::clean_title( $request->get_param( 'title' ) );
 
         $profile_id = Profile::createProfile($title);
 
@@ -200,8 +206,7 @@ class REST_Profile_Controller extends REST_Controller
     {
         $profile_id = absint($request->get_param("profile_id"));
 
-        $title = sanitize_text_field($request->get_param("title"));
-        $title = substr($title, 0, 200);
+        $title = Profile::clean_title( $request->get_param( 'title' ) );
 
         if (! $profile_id ) { //|| ! $title
             return self::rest_response_error();
@@ -436,7 +441,8 @@ class REST_Profile_Controller extends REST_Controller
      */
     public function delete_item_permissions_check($request)
     {
-        if (! User::canEditPosts()) {
+        $profile_id = absint($request->get_param("profile_id"));
+        if (! $profile_id || ! current_user_can('delete_post', $profile_id)) {
             return self::rest_response_error(
                 'cannot_delete',  
                 'Sorry, you cannot delete this resource.',

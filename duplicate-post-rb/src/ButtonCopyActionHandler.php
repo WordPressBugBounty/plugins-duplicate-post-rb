@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -47,10 +47,10 @@ class ButtonCopyActionHandler
      */
     public function handle()
     {
-        if( !isset($_GET['_nonce']) || !$_GET['_nonce']  ) {
+        $nonce = isset( $_GET['_nonce'] ) ? sanitize_text_field( wp_unslash( $_GET['_nonce'] ) ) : '';
+        if( !$nonce ) {
             wp_die('Invalid security token.');
         }
-        $nonce = wp_unslash( $_GET['_nonce'] );
 
         if(  !wp_verify_nonce(  $nonce, Constants::COPY_ACTION_NAME ) ) {
             wp_die('Invalid security token.');
@@ -68,7 +68,7 @@ class ButtonCopyActionHandler
         }
 
         // Check user capability
-        if (!User::canEditPost($post_id)) {
+        if (!User::isAllowForCurrentUser() || !User::canEditPost($post_id)) {
             wp_die('You do not have permission to duplicate this post.');
         }
 
@@ -78,7 +78,11 @@ class ButtonCopyActionHandler
             wp_die('Duplicate Post handler class not found.');
         } 
             
-        $newId          = $duplicator->duplicate( $post_id );
+        try {
+            $duplicator->duplicate( $post_id );
+        } catch ( \InvalidArgumentException $e ) {
+            wp_die( esc_html( $e->getMessage() ) );
+        }
 
         // Redirect back to the referring list page
         $redirect_url = $this->get_redirect_url();

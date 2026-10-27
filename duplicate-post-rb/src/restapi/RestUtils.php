@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -44,6 +44,7 @@ class RestUtils
                 'checkbox', // Validates with validate_checkbox_field.
                 'image_width', // Validates with validate_image_width_field.
                 'thumbnail_cropping', // Validates with validate_text_field.
+                'scenario', // the Assistant's steps; validates with validate_scenario_field.
             ),
             true
         );

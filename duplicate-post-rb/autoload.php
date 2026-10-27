@@ -4,16 +4,19 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
+
+defined( 'WPINC' ) || exit;
 
 /**
  * Autoloader function to dynamically include class files based on namespaces.
  *
  * @param string $class The fully qualified class name (including namespace).
  */
+// phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedFunctionFound -- the plugin's own name is in the function name
 function autoloadRBDuplicatePostClasses($class) {
 
     // Check if the class belongs to the Robosoft namespace
@@ -35,7 +38,7 @@ function autoloadRBDuplicatePostClasses($class) {
   if (file_exists($filePath)) {
       require_once $filePath;
   } else {
-      throw new Exception("rbDuplicatePost :: Class file not found: " . $filePath);
+      throw new Exception("rbDuplicatePost :: Class file not found: " . esc_html($filePath));
   }
 }
 

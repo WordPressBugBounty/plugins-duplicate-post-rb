@@ -4,12 +4,16 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\Copiers;
+
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- ACF field data is copied with a few direct postmeta queries, once per copy
+
+defined( 'WPINC' ) || exit;
 
 class ACFCopier
 {

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -179,6 +179,107 @@ class GeneralOptionsConfig {
                 'type'     => 'text',
                 'sanitize' => 'multiline_string',
                 'default'  => '',
+            ),
+
+            /* Multisite */
+            'enableCrossSiteCopy'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
+
+            /**
+             * How to handle media when copying across sites (or forced same-site):
+             * - copy: physically duplicate attachment files on the target site
+             * - link: reuse source media IDs / URLs (suitable for shared uploads)
+             */
+            // a copy names its original: in the posts lists, and in the editor's Copy history box
+            'showOriginalInLists'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+            'showOriginalOnEdit'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
+
+            /* Rewrite & Republish */
+            'enableRewriteRepublish'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
+
+            /* Auto Cleanup (PRO: the key runs it) */
+            'autoCleanupEnabled'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+            ),
+            'autoCleanupTypes'          => array(
+                'type'     => 'text',
+                'sanitize' => 'string',
+                'default'  => 'post',
+            ),
+            'autoCleanupMatch'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'title_content',
+                'options'  => array( 'title', 'title_content', 'content' ),
+            ),
+            'autoCleanupKeep'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'oldest',
+                'options'  => array( 'oldest', 'newest' ),
+            ),
+            'autoCleanupDraftsOnly'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => true,
+            ),
+            // a published duplicate removed by the auto cleanup redirects to the post that stays (needs RB Links Redirection)
+            'autoCleanupRedirect'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                // opt-in: no redirect is made unless the admin asks for it
+                'default'  => false,
+            ),
+            'autoCleanupSchedule'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'daily',
+                'options'  => array( 'hourly', 'daily', 'weekly' ),
+            ),
+
+            'multisiteMediaMode'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'copy',
+                'options'  => array(
+                    'copy',
+                    'link',
+                ),
+            ),
+
+            // a copy on another site of a network, media "copy": the images placed
+            // in the text too (copy), or their addresses on the source site (keep)
+            'multisiteContentImages'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'copy',
+                'options'  => array(
+                    'copy',
+                    'keep',
+                ),
+            ),
+
+            'forceCopyMediaOnSameSite'          => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
             ),
 
         );

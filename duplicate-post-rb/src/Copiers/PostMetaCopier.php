@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -38,6 +38,8 @@ class PostMetaCopier {
         '_wp_old_date',
 
         'rb-duplicate-post-history',
+        // the plugin's own marks: a rewrite and its original, auto copies made
+        '_rb_dp_*',
 
         // Yoast SEO postmeta is handled entirely by YoastSeoCopier, which
         // applies its own whitelist, conflict rules (overwrite flag) and
@@ -49,6 +51,16 @@ class PostMetaCopier {
         // and would leave nothing "empty" for YoastSeoCopier's default
         // non-overwrite behaviour to fill in.
         '_yoast_wpseo_*',
+
+        // Rank Math SEO — handled by RankMathCopier (primary terms, social
+        // images, never-copy canonical/scores). Blind-copy would leave
+        // source canonical URLs and unmapped primary term IDs on the new post.
+        'rank_math_*',
+
+        // All in One SEO — handled by AllInOneSeoCopier (custom table
+        // aioseo_posts + legacy _aioseop_* postmeta). Exclude both prefixes.
+        '_aioseop_*',
+        '_aioseo_*',
 
         //'_thumbnail_id',
         //'_wp_page_template',
@@ -290,7 +302,8 @@ class PostMetaCopier {
         $all_success = true;
         foreach ( $meta_values as $meta_value ) {
             $value = maybe_unserialize( $meta_value );
-            $result = add_post_meta( $target->get_post_id(), $meta_key, $value );
+            // add_post_meta() unslashes its value: without wp_slash() JSON meta (Elementor data, escaped unicode) loses its backslashes
+            $result = add_post_meta( $target->get_post_id(), $meta_key, wp_slash( $value ) );
             if ( ! $result ) {
                 $all_success = false;
                 // Continue to try other values for this key
@@ -318,12 +331,14 @@ class PostMetaCopier {
      */
     private static function get_excluded_meta_keys(): array {
         $keys = self::EXCLUDED_META_KEYS;
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         return apply_filters( 'rb_duplicate_post_excluded_meta_keys', $keys );
     }
     /**
      * Prepares the allowed meta keys by applying filters.
      */
     private static function prepare_allowed_meta_keys($keys): array {
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         return apply_filters( 'rb_duplicate_post_allowed_meta_keys', $keys );
     }
 

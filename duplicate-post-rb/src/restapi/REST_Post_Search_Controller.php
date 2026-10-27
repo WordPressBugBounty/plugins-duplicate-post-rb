@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -84,7 +84,7 @@ class REST_Post_Search_Controller extends REST_Controller
      */
     public function search_posts_by_param($request)
     {
-        $query = trim($request->get_param('search'));
+        $query = trim((string) $request->get_param('search'));
         $check_id =  absint( $request->get_param('check_id') );
         
         if (empty($query) && !$check_id) {
@@ -192,7 +192,16 @@ class REST_Post_Search_Controller extends REST_Controller
                 array('status' => 401)
             );
         }
-        
+
+        // the search picks a source post for a profile: only for users who can write posts
+        if (!current_user_can('edit_posts')) {
+            return new WP_Error(
+                'rest_forbidden',
+                __('Sorry, you are not allowed to search posts.', 'duplicate-post-rb'),
+                array('status' => rest_authorization_required_code())
+            );
+        }
+
         return true;
     }
 }

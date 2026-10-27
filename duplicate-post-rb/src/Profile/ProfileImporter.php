@@ -4,14 +4,17 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\Profile;
 
+defined( 'WPINC' ) || exit;
+
 use WP_Post;
+use rbDuplicatePost\Scenario\Scenario;
 
 /**
  * Imports profiles from JSON export file.
@@ -101,7 +104,7 @@ class ProfileImporter {
         // Check for slug conflict (different ID but same slug)
         if ( $existing_by_slug && ( ! $existing_by_id || $existing_by_id->ID !== $existing_by_slug->ID ) ) {
             // Append import timestamp to title and slug
-            $import_timestamp = date( 'Y-m-d H:i' );
+            $import_timestamp = gmdate( 'Y-m-d H:i' );
             $new_title = $profile_data['title'] . ' [imported ' . $import_timestamp . ']';
             $new_slug = sanitize_title( $new_title );
             
@@ -110,6 +113,17 @@ class ProfileImporter {
             
             $profile_data['title'] = $new_title;
             $profile_data['slug'] = $new_slug;
+        }
+
+        // the scenario is cleaned and checked as when it is saved on the settings screen
+        $options = $profile_data['meta'][ self::ALLOWED_META_FIELDS[0] ] ?? null;
+        if ( is_array( $options ) && array_key_exists( 'scenario', $options ) ) {
+            $scenario = Scenario::sanitize( $options['scenario'] );
+            $error    = Scenario::check_permissions( $scenario );
+            if ( $error ) {
+                return array( 'imported' => false, 'skipped' => false, 'error' => $profile_data['title'] . ': ' . $error->get_error_message() );
+            }
+            $profile_data['meta'][ self::ALLOWED_META_FIELDS[0] ]['scenario'] = $scenario;
         }
 
         // Create or update profile
@@ -219,7 +233,7 @@ class ProfileImporter {
         if ( ! empty( $profile_data['meta'] ) ) {
             foreach ( $profile_data['meta'] as $meta_key => $meta_value ) {
                 if ( in_array( $meta_key, self::ALLOWED_META_FIELDS, true ) ) {
-                    update_post_meta( $post_id, $meta_key, $meta_value );
+                    update_post_meta( $post_id, $meta_key, wp_slash( $meta_value ) );
                 }
             }
         }

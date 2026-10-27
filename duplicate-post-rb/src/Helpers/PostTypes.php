@@ -143,6 +143,7 @@ class PostTypes {
         }
 
         // Allow other developers to modify supported post types via filter
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         $types = apply_filters('rb_duplicate_post_supported_types', $types, $blog_id); //
 
         return  $types;

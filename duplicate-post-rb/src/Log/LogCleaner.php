@@ -4,12 +4,14 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\Log;
+
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQL.NotPrepared, PluginCheck.Security.DirectDB.UnescapedDBParameter, WordPress.DB.PreparedSQLPlaceholders.ReplacementsWrongNumber -- the plugin's own log table ($wpdb->prefix + a constant); values go through $wpdb->prepare()
 
 defined('WPINC') || exit;
 
@@ -91,5 +93,8 @@ class LogCleaner
     {
         self::cleanOlderThan(60);
         self::keepLast(10000);
+
+        // the notices of copies made a week ago that their users never came back to see
+        ( new \rbDuplicatePost\Notification() )->cleanup_expired();
     }
 }

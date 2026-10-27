@@ -4,12 +4,14 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\Contexts;
+
+defined( 'WPINC' ) || exit;
 
 use InvalidArgumentException;
 /**

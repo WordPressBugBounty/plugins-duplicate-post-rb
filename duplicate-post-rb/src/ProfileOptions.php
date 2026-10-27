@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -26,15 +26,13 @@ class ProfileOptions {
      */
     public static function getOptionsFromDb( int $profile_id ) : array 
     {
-        if(!$profile_id || absint($profile_id) <= 0) {
-            return array();
-        }
-
-        $options = get_post_meta(
+        // no profile at all (a site whose Default profile is not made yet - a new site of a network,
+        // a copy in cron): the defaults below, not nothing - else a copy is made with every element off
+        $options = absint( $profile_id ) > 0 ? get_post_meta(
             $profile_id,
             Constants::OPTION_NAME,
             true
-        );
+        ) : array();
 
         if ( ! is_array( $options ) ) {
             $options = array();
@@ -116,8 +114,9 @@ class ProfileOptions {
             $options[$option_id] = $value;
         }
 
-        if (!add_post_meta( $profile_id, Constants::OPTION_NAME, $options, true)) {
-            update_post_meta(  $profile_id, Constants::OPTION_NAME, $options);
+        // the meta functions unslash: without wp_slash() a "\" in an option (a pattern, a prefix) is lost
+        if (!add_post_meta( $profile_id, Constants::OPTION_NAME, wp_slash( $options ), true)) {
+            update_post_meta(  $profile_id, Constants::OPTION_NAME, wp_slash( $options ));
         }
     }
 

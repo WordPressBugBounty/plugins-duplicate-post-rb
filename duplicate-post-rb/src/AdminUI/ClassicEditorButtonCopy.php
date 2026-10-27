@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -91,6 +91,7 @@ class ClassicEditorButtonCopy
         }
 
         echo '<div class="misc-pub-section rb-duplicate-post-copy-button-container" >';
+        // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- built from the post ID (%d) and an esc_html__() label
         echo self::get_copy_action_html($post);
         echo '</div>';
     }

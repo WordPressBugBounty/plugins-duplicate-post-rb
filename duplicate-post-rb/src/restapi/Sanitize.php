@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -46,9 +46,7 @@ class Sanitize
      */
     public static function sanitize_profile_title($param, $request, $key)
     {
-        $title = sanitize_text_field($param);
-        $title = substr($title, 0, 200);
-        return $title;
+        return \rbDuplicatePost\Profile\Profile::clean_title( $param );
     }
     
     /**
@@ -84,5 +82,12 @@ class Sanitize
     public static function sanitize_post_ids($param, $request, $key)
     {
         return IDsParser::parse($param);
+    }
+
+    /**
+     * Sanitize blog / site ID for Multisite target.
+     */
+    public static function sanitize_blog_id( $param, $request, $key ) {
+        return absint( $param );
     }
 }

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -87,9 +87,11 @@ class YoastSeoCopier {
     /**
      * Main plugin file used to check per-blog activation state (see
      * is_yoast_active_on_blog()). Filterable via
+     // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
      * 'rb_duplicate_post_yoast_seo_plugin_file' in case of a fork/rename.
      */
-    const DEFAULT_YOAST_PLUGIN_FILE = 'wordpress-seo/wp-seo-main.php';
+    // the file WordPress lists as active (wp-seo-main.php is only the loader it includes)
+    const DEFAULT_YOAST_PLUGIN_FILE = 'wordpress-seo/wp-seo.php';
 
     /**
      * Copies Yoast SEO data from the source post to the target post.
@@ -159,6 +161,7 @@ class YoastSeoCopier {
             return $result;
         }
 
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         do_action( 'rb_duplicate_post_before_yoast_seo_copy', $context, $args );
 
         $overwrite = ! empty( $args['overwrite'] );
@@ -174,6 +177,7 @@ class YoastSeoCopier {
 
         $result['success'] = empty( $result['errors'] );
 
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         do_action( 'rb_duplicate_post_after_yoast_seo_copy', $context, $result );
 
         return $result;
@@ -228,6 +232,7 @@ class YoastSeoCopier {
          * @param array<string> $whitelist
          * @param CopyOperationContext $context
          */
+        // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
         return apply_filters( 'rb_duplicate_post_yoast_seo_fields', $whitelist, $context );
     }
 
@@ -267,7 +272,7 @@ class YoastSeoCopier {
             return;
         }
 
-        $update_result = update_post_meta( $target->get_post_id(), $meta_key, $source_value );
+        $update_result = update_post_meta( $target->get_post_id(), $meta_key, wp_slash( $source_value ) );
         BlogPostContext::maybe_restore_blog( $did_switch_target );
 
         // update_post_meta() returns false both on genuine failure AND when
@@ -498,6 +503,7 @@ class YoastSeoCopier {
     private static function is_yoast_active_on_blog( BlogPostContext $context ): bool {
 
         $plugin_file = apply_filters(
+            // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
             'rb_duplicate_post_yoast_seo_plugin_file',
             self::DEFAULT_YOAST_PLUGIN_FILE
         );

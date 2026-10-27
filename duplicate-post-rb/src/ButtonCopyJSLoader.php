@@ -1,10 +1,10 @@
 <?php
-/* 
-*      RB Duplicate Post     
+/*
+*      RB Duplicate Post
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -16,154 +16,18 @@ defined( 'WPINC' ) || exit;
 use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\User;
 use rbDuplicatePost\Utils;
-use rbDuplicatePost\Notification;
 use rbDuplicatePost\ProCheck;
 
 /**
  * Class ButtonCopyJSLoader
  *
- * Enqueues the JavaScript file and exposes localized variables
- * for authorized users inside the WordPress admin area.
+ * Loads the Copy dialog (assets/admin/copy-dialog.js) on the admin screens of
+ * users who can copy, with the profiles it offers.
  */
 class ButtonCopyJSLoader {
 
-    /**
-     * Constructor.
-     * Registers hooks for enqueueing admin scripts.
-     */
     public function __construct() {
         add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_admin_scripts' ) );
-        add_action( 'admin_footer', array( $this, 'print_inline_js' ) );
-    }
-
-    public function print_inline_js() {
-
-        if ( ! self::isJsCodeNeed() ) {
-            return;
-        }
-        $blockPro = ProCheck::isActive()== false;
-        $profile_id = (int) Profile::getDefaultProfileId();
-        
-        $notificationShow = false;
-
-        $notificationData = array(
-            'duplicateSuccess'=>0,
-            'duplicateFail'=>0,
-            'duplicateProRequery'=>0,
-        );
-
-        $notification = new Notification();
-        $user_notification = $notification->get_notification_once();
-        $notification_types = array(Constants::NOTIFICATION_TYPE_POST_COPIED, Constants::NOTIFICATION_TYPE_POST_CREATED);
-
-        if($user_notification && isset($user_notification['type']) && isset($user_notification['data'])) {
-            $notification_type = $user_notification['type'];
-            if( in_array($notification_type, $notification_types) ) {
-                $notificationShow = true;
-                foreach ($user_notification['data'] as $key => $value) {
-                    if( isset($value['success']) && $value['success'] ) {
-                        ++$notificationData['duplicateSuccess'] ;
-                    } else {
-                        if($value['code'] == 'pro_version_not_active') {
-                            ++$notificationData['duplicateProRequery'] ;
-                        } else {
-                            ++$notificationData['duplicateFail'] ;
-                        }
-                    }
-                }
-            }
-        }
-        echo '<div class="rbDuplicatePostDialog" rbDuplicatePost_id="' . $profile_id. '"></div>';
-        echo "<script type='text/javascript'>" . self::getJSCode( $blockPro, $notificationShow, $notificationData ) . "</script>";
-    }
-
-    static function getJSCode($blockPro = false, $notificationShow = false, $notificationData = array(['duplicateSuccess'=>0,'duplicateFail'=>0])) {
-
-        $duplicateSuccess = isset($notificationData['duplicateSuccess']) ? (int) $notificationData['duplicateSuccess']: 0;
-
-        $duplicateFail = isset($notificationData['duplicateFail']) ? (int) $notificationData['duplicateFail']: 0;
-
-        $duplicateProRequery = isset($notificationData['duplicateProRequery']) ? (int) $notificationData['duplicateProRequery']: 0;
-
-        $jsCode   = 'window["rb_duplicate_post_dialog_cfg"] = {'
-        . 'rb_duplicate_post_dialog_url: "' . RB_DUPLICATE_POST_URL . 'assets/js/dialog/",'
-        . 'imagesUrl: "' . RB_DUPLICATE_POST_URL . 'assets/js/dialog/",'
-        . 'restUrl: "' . esc_url( get_rest_url() ) . '",'
-        . 'wp_rest: "' . esc_js( wp_create_nonce( 'wp_rest' ) ) . '",'
-            . 'blockPro: ' . ( $blockPro ? 'true' : 'false' ) . ','
-            . 'debug: true,'
-            . 'messageShow: ' . ( $notificationShow ? 'true' : 'false' ) . ','
-            . 'duplicateSuccess: ' . $duplicateSuccess. ','
-            . 'duplicateFail: ' . $duplicateFail . ','
-            . 'duplicateProRequery: ' . $duplicateProRequery . ','
-            . 'settingsUrl: "' . esc_url( Utils::getSettingsPageUrl() ) . '",'
-            . '};';
-
-        $jsCode .= "
-const toPositiveInt = (value)  =>{ const num = Number(value); return Number.isInteger(num) && num > 0 ? num : 0; }
-const handleRbDuplicatePostButton = (event)=>{
-    if(!event || !event.currentTarget){
-        return;
-    }
-    const el = event.currentTarget;
-
-    const typeDataExists = el.getAttribute('data-duplicate-action-type')!==null;
-    const dataEl = !typeDataExists && el.querySelector('.rb-duplicate-post-copy-button-data') ? el.querySelector('.rb-duplicate-post-copy-button-data') : el;
-    const duplicateActionType = dataEl.getAttribute('data-duplicate-action-type') || 'duplicate';
-
-    if(duplicateActionType === 'create') {
-        runRbDuplicatePostCreateAction(dataEl);
-    }
-    if(duplicateActionType === 'duplicate') {
-        runRbDuplicatePostDuplicateAction(dataEl);
-    }
-}
-
-const runRbDuplicatePostDuplicateAction = (el) => {
-    if (typeof window.rb_duplicate_post_dialog !== 'function') {
-        console.warn('Function rb_duplicate_post_dialog not found.');
-        return;
-    }
-
-    const postId = toPositiveInt(el.getAttribute('data-post-id'));
-    if ( postId <= 0) {
-        console.warn('Incorrect post ID');
-        return;
-    }
-            
-    const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
-    const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
-    const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
-    window.rb_duplicate_post_dialog([parseInt(postId, 10)], no_refresh, profileId , withoutConfirmation);
-}
-
-const runRbDuplicatePostCreateAction = (el) => {
-    if (typeof window.rb_duplicate_post_dialog_new !== 'function') {
-        console.warn('Function rb_duplicate_post_dialog_new not found.');
-        return;
-    }
-    const no_refresh = toPositiveInt(el.getAttribute('data-no-refresh')) ? 1 : 0 ;
-    const profileId = toPositiveInt(el.getAttribute('data-profile-id'));
-    const withoutConfirmation = toPositiveInt(el.getAttribute('data-without-confirmation')) ? 1 : 0;
-    window.rb_duplicate_post_dialog_new(profileId, no_refresh , withoutConfirmation);
-}
-
-const handleRbDuplicatePostMouse = (event) => {
-    if (event.type === 'click' && event.button !== 0) return;
-    if (event.type === 'mouseup' && event.button !== 1) return;
-    event.preventDefault();
-    event.stopPropagation();
-    handleRbDuplicatePostButton(event);
-};
-document.addEventListener('DOMContentLoaded',  ()=> {
-    const buttons = document.querySelectorAll('.rb-duplicate-post-copy-button');
-    buttons.forEach( (button)=> {
-        button.addEventListener('click',     handleRbDuplicatePostMouse );
-        button.addEventListener('mouseup',   handleRbDuplicatePostMouse );
-    });
-});
-";
-        return $jsCode;
     }
 
     static function isJsCodeNeed() {
@@ -174,34 +38,79 @@ document.addEventListener('DOMContentLoaded',  ()=> {
     }
 
     /**
-     * Enqueue admin JS and localize variables for authorized users.
+     * The profiles as the dialog needs them: name, template source, what
+     * happens after copying and which elements are copied.
      */
+    public static function profiles(): array {
+        $default = (int) Profile::getDefaultProfileId();
+        $out     = array();
+        foreach ( Profile::getProfiles( -1, '' ) as $profile ) {
+            $options  = ProfileOptions::getOptionsArray( (int) $profile->ID );
+            $elements = array();
+            foreach ( $options as $key => $option ) {
+                if ( 0 === strpos( $key, 'copy' ) ) {
+                    $elements[ $key ] = (bool) $option['value'];
+                }
+            }
+            $out[] = array(
+                'id'       => (int) $profile->ID,
+                'title'    => $profile->post_title !== '' ? $profile->post_title : sprintf( '#%d', $profile->ID ),
+                'default'  => (int) $profile->ID === $default,
+                'source'   => Profile::getProfileSourceId( (int) $profile->ID ),
+                'after'    => isset( $options['afterCopy']['value'] ) ? (string) $options['afterCopy']['value'] : 'stay',
+                'elements' => $elements,
+                // the Assistant's questions, asked by the dialog
+                'vars'     => ! empty( $options['scenario']['value']['enabled'] ) ? array_values( (array) ( $options['scenario']['value']['vars'] ?? array() ) ) : array(),
+            );
+        }
+        return $out;
+    }
+
     public function enqueue_admin_scripts() {
 
         if ( ! self::isJsCodeNeed() ) {
             return;
         }
 
-        $handle = RB_DUPLICATE_POST_ASSETS_PREFIX.'admin-button-row-js';
-        $src    = RB_DUPLICATE_POST_URL . 'assets/js/dialog/main.js';
+        $handle = RB_DUPLICATE_POST_ASSETS_PREFIX . 'copy-dialog';
 
         wp_enqueue_script(
             $handle,
-            $src,
-            array(  ),
+            RB_DUPLICATE_POST_URL . 'assets/admin/copy-dialog.js',
+            array( 'wp-i18n' ),
             RB_DUPLICATE_POST_VERSION,
             true
         );
+        wp_set_script_translations( $handle, 'duplicate-post-rb' );
 
-        $params = array(
-            'settings_url' => esc_attr( Utils::getSettingsPageUrl() ),
+        $multisite = null;
+        if ( is_multisite() ) {
+            $multisite = array(
+                'cross'   => \rbDuplicatePost\Helpers\Multisite::is_cross_site_enabled(),
+                'current' => get_current_blog_id(),
+                'sites'   => \rbDuplicatePost\Helpers\Multisite::get_available_target_blogs(),
+            );
+        }
+
+        wp_localize_script(
+            $handle,
+            'RBDuplicatePostDialog',
+            array(
+                'restUrl'   => esc_url_raw( rest_url( 'rb_duplicate_post/v1/' ) ),
+                'nonce'     => wp_create_nonce( 'wp_rest' ),
+                'pro'       => ProCheck::isActive(),
+                'buyUrl'    => 'https://rbplugins.com/wordpress-plugins/duplicate-post-rb/?pk_campaign=wp_dp_dialog#pricing',
+                'profiles'  => self::profiles(),
+                'multisite' => $multisite,
+                'isMultisite' => is_multisite(),
+            )
         );
 
-        // Localize variables accessible in JS
+        // read by the block editor's Copy panel
         wp_localize_script(
             $handle,
             'rbDuplicatePost',
-            $params 
+            array( 'settings_url' => esc_url_raw( Utils::getSettingsPageUrl() ) )
         );
     }
 }

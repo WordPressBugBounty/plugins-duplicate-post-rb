@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -247,6 +247,7 @@ class PostMediaCopier {
             'numberposts'    => 1,
             'fields'         => 'ids',
             'no_found_rows'  => true,
+            // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- finds one attachment by its source key (numberposts 1, ids only)
             'meta_query'     => array(
                 'relation' => 'AND',
                 array(
@@ -322,7 +323,7 @@ class PostMediaCopier {
         $new_id = \wp_insert_attachment( $attachment_args, $new_filepath, $target->get_post_id(), true );
 
         if ( \is_wp_error( $new_id ) ) {
-            @unlink( $new_filepath );
+            wp_delete_file( $new_filepath );
             BlogPostContext::maybe_restore_blog( $did_switch_target );
             return false;
         }

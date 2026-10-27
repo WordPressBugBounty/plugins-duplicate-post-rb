@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -54,6 +54,26 @@ class Utils {
     }
 
     /**
+     * Runs $callback without the markup filter WordPress puts on what a user who may not
+     * write any markup saves, when there is no user at all (cron, WP-CLI): a copy made
+     * there is of content already on the site, saved by someone who was allowed to write
+     * it - without this an automatic copy loses its embeds, forms and scripts.
+     *
+     * @return mixed what $callback returns
+     */
+    public static function withoutKsesWhenNoUser( callable $callback ) {
+        if ( is_user_logged_in() || false === has_filter( 'content_save_pre', 'wp_filter_post_kses' ) ) {
+            return $callback();
+        }
+        kses_remove_filters();
+        try {
+            return $callback();
+        } finally {
+            kses_init_filters();
+        }
+    }
+
+    /**
      * Get current screen
      */
     public static function getCurrentScreen() {
@@ -61,7 +81,7 @@ class Utils {
             return '';
         }
 
-        $parts = parse_url( $_SERVER[ 'REQUEST_URI' ] );
+        $parts = wp_parse_url( esc_url_raw( wp_unslash( $_SERVER[ 'REQUEST_URI' ] ) ) );
         if ( ! $parts || ! isset( $parts[ 'path' ] ) ) {
             return '';
         }

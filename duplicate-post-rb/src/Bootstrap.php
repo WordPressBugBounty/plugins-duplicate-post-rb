@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -31,6 +31,12 @@ class Bootstrap
 
         /* Admin  */
         new \rbDuplicatePost\AdminUI\AdminUI();
+
+        /* the Assistant: scenario steps on the fields of every new copy */
+        \rbDuplicatePost\Scenario\Scenario::init();
+
+        /* Rewrite & Republish: also on cron, for scheduled rewrites */
+        new \rbDuplicatePost\Rewrite\RewriteRepublish();
 
         /* CLI */
         if (defined('WP_CLI') && WP_CLI) {

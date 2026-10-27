@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -66,6 +66,7 @@ class REST_Profile_Import_Controller extends REST_Controller
     {
 
          // Check if file was uploaded
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing -- a REST route: WordPress checks the wp_rest nonce and permission_callback the capability
         if ( ! isset( $_FILES['profile_file'] ) ) {
             return self::rest_response_error(
                 'no_file_uploaded',
@@ -74,6 +75,7 @@ class REST_Profile_Import_Controller extends REST_Controller
             );
         }
 
+        // phpcs:ignore WordPress.Security.NonceVerification.Missing, WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- the upload array; its error, size, type and JSON content are checked below
         $file = $_FILES['profile_file'];
          // Validate upload errors
         if ( $file['error'] !== UPLOAD_ERR_OK ) {
@@ -163,7 +165,7 @@ class REST_Profile_Import_Controller extends REST_Controller
         }
 
         // Clean up temp file
-        @unlink( $file['tmp_name'] );
+        wp_delete_file( $file['tmp_name'] );
 
         // Return success response
         return self::rest_response(

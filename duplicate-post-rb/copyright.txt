@@ -1,0 +1,9 @@
+/* 
+*      RB Duplicate Post     
+*      Version: @@Version@@
+*      By RbPlugin
+*
+*      Contact: https://rbplugins.com 
+*      Created: 2026
+*      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
+ */

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -166,6 +166,12 @@ class ProfileOptionsConfig {
                 'default'  => false,
                 'group'    => 'general',
             ),
+            'copyComments'       => array(
+                'type'     => 'checkbox',
+                'sanitize' => 'boolean',
+                'default'  => false,
+                'group'    => 'general',
+            ),
 
             'counterStartValue'  => array(
                 'type'     => 'text',
@@ -280,14 +286,40 @@ class ProfileOptionsConfig {
 
             'colorButton'        => array(
                 'type'     => 'text',
-                'sanitize' => 'string',
+                'sanitize' => 'color',
                 'default'  => '#2271b1',
                 'group'    => 'general',
             ),
 
+            // where the user goes after copying one post: stay on the page, the copy's editor, or ask
+            'afterCopy'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'stay',
+                'group'    => 'general',
+                'options'  => array( 'stay', 'edit', 'ask' ),
+            ),
+
+            // the Assistant: steps run on every copy of the profile, questions asked when copying
+            'scenario'          => array(
+                'type'     => 'scenario',
+                'sanitize' => 'scenario',
+                'default'  => array( 'enabled' => false, 'template' => '', 'vars' => array(), 'steps' => array() ),
+                'group'    => 'general',
+            ),
+
+            // PRO (the key converts): a copy of a page as a post, or the other way round
+            'convertTo'          => array(
+                'type'     => 'select',
+                'sanitize' => 'string',
+                'default'  => 'same',
+                'group'    => 'general',
+                'options'  => array( 'same', 'post', 'page' ),
+            ),
+
             'sourcePostId'         => array(
                 'type'     => 'text',
-                'sanitize' => 'string', //sanitize_post_id
+                'sanitize' => 'post_id',
                 'default'  => '0',
                 'group'    => 'general',
             ),

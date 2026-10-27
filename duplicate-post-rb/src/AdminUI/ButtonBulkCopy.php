@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -103,6 +103,10 @@ class ButtonBulkCopy
 
         foreach ( $ids as $id ) {
             try {
+                // the ids come from the submitted form: each must be a post the user may edit
+                if ( ! User::canEditPost( $id ) ) {
+                    throw new \InvalidArgumentException( 'You do not have permission to duplicate this post.' );
+                }
                 $newId = $duplicator->duplicate( $id, $profile_id );
                 $results[] = array(
                     'id'    => $id,

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -171,7 +171,7 @@ class REST_Profile_Options_Controller extends REST_Controller
     public function get_items($request)
     {
         $profile_id = absint($request['profile_id']);
-        $last_viewed = str_ends_with( $request->get_route(), '/last_viewed' );
+        $last_viewed = '/last_viewed' === substr( $request->get_route(), -strlen( '/last_viewed' ) );
 
         $options = $this->get_options($profile_id );
 

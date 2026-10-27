@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -63,14 +63,14 @@ class TitleTransformer extends AbstractPostTransformer {
 
         if(self::isTagInStr( 'CurrentDate', $prefixValue) || self::isTagInStr( 'CurrentDate',  $suffixValue)) {
             $dateFormat      = self::getOptionValue( $options, 'dateFormat' );
-            $dateValue = date( $dateFormat );
+            $dateValue = gmdate( $dateFormat );
             $prefixValue =  self::replaceTag( 'CurrentDate', $dateValue, $prefixValue );
             $suffixValue =  self::replaceTag( 'CurrentDate', $dateValue, $suffixValue );
         }
 
         if(self::isTagInStr( 'CurrentTime', $prefixValue) || self::isTagInStr( 'CurrentTime',  $suffixValue)) {
             $timeFormat      = self::getOptionValue( $options, 'timeFormat' );
-            $timeValue = date( $timeFormat );
+            $timeValue = gmdate( $timeFormat );
             $prefixValue =  self::replaceTag( 'CurrentTime', $timeValue, $prefixValue );
             $suffixValue =  self::replaceTag( 'CurrentTime', $timeValue, $suffixValue );
         }
@@ -96,15 +96,18 @@ class TitleTransformer extends AbstractPostTransformer {
     //     return '';
     // }
 
+    /** [Counter], [counter], [ CurrentDate ]: any letter case, spaces inside the brackets */
+    private static function tagPattern( string $tag ): string {
+        return '/\[\s*' . preg_quote( trim( $tag ), '/' ) . '\s*\]/i';
+    }
+
     private static function isTagInStr( string $tag, string $str ): bool {
-        $tag = '[' . trim($tag) . ']';
-        $lowerTag = strtolower( $tag );
-        return strpos( $str, $tag ) !== false || strpos( $str,  $lowerTag ) !== false;
+        return (bool) preg_match( self::tagPattern( $tag ), $str );
     }
 
     private static function replaceTag( string $tag, string $value, string $str ): string {
-        $tag = '[' . trim($tag) . ']';
-        $lowerTag = strtolower( $tag );
-        return str_replace( array($tag, $lowerTag), $value, $str );
+        return (string) preg_replace_callback( self::tagPattern( $tag ), function () use ( $value ) {
+            return $value;
+        }, $str );
     }
 }

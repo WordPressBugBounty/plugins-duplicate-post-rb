@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -24,5 +24,9 @@ class REST
         new \rbDuplicatePost\restapi\REST_Profile_Export_Controller();
         new \rbDuplicatePost\restapi\REST_Profile_Import_Controller();
         new \rbDuplicatePost\restapi\REST_Post_Search_Controller();
+        new \rbDuplicatePost\restapi\REST_Log_Controller();
+        new \rbDuplicatePost\restapi\REST_Rewrite_Controller();
+        new \rbDuplicatePost\restapi\REST_Cleanup_Controller();
+        new \rbDuplicatePost\restapi\REST_Scenario_Controller();
     }
 }

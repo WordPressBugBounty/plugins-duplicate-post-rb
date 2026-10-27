@@ -2,6 +2,8 @@
 
 namespace rbDuplicatePost\Contexts;
 
+defined( 'WPINC' ) || exit;
+
 /**
  * Represents a post within a specific blog context.
  * Encapsulates post_id, blog_id, and Multisite awareness.
@@ -55,7 +57,7 @@ class BlogPostContext {
         }
     }
 
-    public static function create_empty_target( int $blog_id = null ): self {
+    public static function create_empty_target( ?int $blog_id = null ): self {
         return new self( 0, $blog_id, true );
     }
 

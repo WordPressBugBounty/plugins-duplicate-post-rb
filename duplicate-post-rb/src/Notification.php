@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -121,16 +121,15 @@ class Notification {
 	 * Cleanup expired notifications.
 	 */
 	public function cleanup_expired() {
-		$users = get_users( [ 'fields' => [ 'ID' ] ] );
+		// only the users with a notice waiting, of the whole network (user meta is shared by its sites):
+		// a shop with thousands of customers is not read user by user every day
+		// phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_key -- the query finds the few users who have this key
+		$users = get_users( array( 'meta_key' => self::META_KEY, 'fields' => 'ID', 'blog_id' => 0 ) );
 
-		foreach ( $users as $user ) {
-			$json = get_user_meta( $user->ID, self::META_KEY, true );
-			if ( empty( $json ) ) {
-				continue;
-			}
-
-			if ( $this->is_expired( $json ) ) {
-				delete_user_meta( $user->ID, self::META_KEY );
+		foreach ( $users as $user_id ) {
+			$json = get_user_meta( (int) $user_id, self::META_KEY, true );
+			if ( empty( $json ) || $this->is_expired( $json ) ) {
+				delete_user_meta( (int) $user_id, self::META_KEY );
 			}
 		}
 	}

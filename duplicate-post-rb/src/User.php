@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -111,14 +111,15 @@ class User {
             return false;
         }
 
+        // a super admin is not a role: on a network site they may have no role at all
+        $allowForSuperAdmins = GeneralOptions::getOptionValue( 'allowForSuperAdmins' );
+        if ( $allowForSuperAdmins && is_multisite() && is_super_admin( $user_id ) ) {
+            return true;
+        }
+
         $user_rules = self::getUserRolesByUserId( $user_id );
         if ( empty( $user_rules ) ) {
             return false;
-        }
-
-        $allowForSuperAdmins = GeneralOptions::getOptionValue( 'allowForSuperAdmins' );
-        if ( $allowForSuperAdmins && in_array( 'superadmin', $user_rules ) ) {
-            return true;
         }
 
         $allowForAdministrators = GeneralOptions::getOptionValue( 'allowForAdministrators' );
@@ -142,7 +143,7 @@ class User {
         }
 
         $allowForSubscribers = GeneralOptions::getOptionValue( 'allowForSubscribers' );
-        if ( $allowForSubscribers && in_array( 'subscribers', $user_rules ) ) {
+        if ( $allowForSubscribers && in_array( 'subscriber', $user_rules ) ) {
             return true;
         }
 

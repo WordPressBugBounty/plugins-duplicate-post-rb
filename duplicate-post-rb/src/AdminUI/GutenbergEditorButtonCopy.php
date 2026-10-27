@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -57,7 +57,7 @@ class GutenbergEditorButtonCopy
             RB_DUPLICATE_POST_ASSETS_PREFIX . 'gutenberg-copy-button',
             RB_DUPLICATE_POST_URL.'assets/js/gutenberg-editor/main.js',
             array( 'wp-plugins', 'wp-edit-post', 'wp-components', 'wp-element' , 'wp-data' ),
-            false,
+            RB_DUPLICATE_POST_VERSION,
             true
         );
         wp_enqueue_script( RB_DUPLICATE_POST_ASSETS_PREFIX . 'gutenberg-copy-button' );

@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -176,6 +176,20 @@ class Profile
      * @param string $title
      * @return integer|boolean
      */
+    /** A profile's longest name. */
+    const TITLE_MAX = 40;
+
+    /**
+     * A profile's name as it is kept: letters, digits and single spaces, at most
+     * TITLE_MAX characters (any alphabet; other signs are dropped).
+     */
+    public static function clean_title( $title ): string {
+        $title = is_string( $title ) ? wp_strip_all_tags( $title ) : '';
+        $title = preg_replace( '/[^\p{L}\p{N} ]+/u', ' ', $title );
+        $title = trim( preg_replace( '/\s+/u', ' ', (string) $title ) );
+        return function_exists( 'mb_substr' ) ? trim( mb_substr( $title, 0, self::TITLE_MAX, 'UTF-8' ) ) : trim( substr( $title, 0, self::TITLE_MAX ) );
+    }
+
     public static function createProfile($title = '')
     {
 
@@ -183,7 +197,7 @@ class Profile
             return false;
         }
 
-        $title = trim( sanitize_text_field( $title ) );
+        $title = self::clean_title( $title );
 
         if ( !$title) {
             return false;
@@ -208,7 +222,7 @@ class Profile
     public static function updateProfile($profile_id, $title)
     {
         $profile_id = absint($profile_id);
-        $title      = trim(sanitize_text_field($title));
+        $title      = self::clean_title( $title );
 
         if (! self::isUserCanEditExistsProfile($profile_id)) {
             return false;
@@ -288,6 +302,11 @@ class Profile
             return false;
         }
 
+        // another user's profile only for those who may edit others' posts
+        if (! CliUtils::isWpCli() && ! current_user_can('edit_post', $profile_id)) {
+            return false;
+        }
+
         return true;
     }
 
@@ -326,6 +345,23 @@ class Profile
     }
 
     
+
+    /**
+     * Whether the current user may make a new post from this template source (a profile's
+     * source post): a post they may edit, or one anyone can read in full on the site -
+     * never someone else's private post or draft, nor the text behind a post's password.
+     */
+    public static function canUseAsTemplate( int $source_id ): bool
+    {
+        if ( current_user_can( 'edit_post', $source_id ) ) {
+            return true;
+        }
+        $post = get_post( $source_id );
+        return $post
+            && 'publish' === $post->post_status
+            && '' === $post->post_password
+            && is_post_type_viewable( $post->post_type );
+    }
 
     public static function getProfilesWithSourceId($forPlace = 'buttonTypeNew'): array {
 

@@ -4,12 +4,14 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
 
 namespace rbDuplicatePost\AfterCopyTransformers;
+
+// phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching -- sets the GUID of the new post, which wp_update_post() cannot change
 
 defined( 'WPINC' ) || exit;
 
@@ -56,7 +58,8 @@ class GUIDTransformer extends AbstractPostAfterCopyTransformer {
             [ '%d' ]
         );
 
-        if ($result === false) {
+        if ($result === false && defined('WP_DEBUG') && WP_DEBUG) {
+            // phpcs:ignore WordPress.PHP.DevelopmentFunctions.error_log_error_log -- only with WP_DEBUG on
             error_log("GUIDTransformer: failed to update GUID for post {$post_new_id}: {$wpdb->last_error}");
         }
     }
@@ -77,7 +80,7 @@ class GUIDTransformer extends AbstractPostAfterCopyTransformer {
         int $new_id
     ) {
 
-        $parts = parse_url($guid);
+        $parts = wp_parse_url($guid);
 
         if ($parts === false) {
             return null; // not a valid URL

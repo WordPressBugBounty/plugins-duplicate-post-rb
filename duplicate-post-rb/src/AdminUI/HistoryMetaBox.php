@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -14,6 +14,7 @@ namespace rbDuplicatePost\AdminUI;
 defined( 'WPINC' ) || exit;
 
 use rbDuplicatePost\Constants;
+use rbDuplicatePost\GeneralOptions;
 use rbDuplicatePost\Profile\Profile;
 use rbDuplicatePost\Utils;
 
@@ -34,13 +35,41 @@ class HistoryMetaBox {
      * Registers the meta box.
      */
     public static function hooks() {
-        add_action( 'add_meta_boxes', array( self::class, 'add_meta_box' ) );
+        if ( GeneralOptions::getOptionValue( 'showOriginalOnEdit' ) ) {
+            add_action( 'add_meta_boxes', array( self::class, 'add_meta_box' ), 10, 2 );
+        }
+        if ( GeneralOptions::getOptionValue( 'showOriginalInLists' ) ) {
+            add_filter( 'display_post_states', array( self::class, 'post_state' ), 10, 2 );
+        }
+    }
+
+    /**
+     * "Copy of <original>" next to the title of a copy in the posts lists.
+     */
+    public static function post_state( $states, $post ) {
+        $history = get_post_meta( $post->ID, Constants::HISTORY_META_KEY, true );
+        if ( empty( $history['post_source_id'] ) ) {
+            return $states;
+        }
+        $source_id      = (int) $history['post_source_id'];
+        $source_blog_id = isset( $history['post_source_blog_id'] ) ? (int) $history['post_source_blog_id'] : 0;
+        $title          = isset( $history['post_source_title'] ) ? sanitize_text_field( $history['post_source_title'] ) : '#' . $source_id;
+        $url            = self::get_post_url( $source_id, $source_blog_id );
+        $label          = $url
+            ? sprintf( '<a href="%s">%s</a>', esc_url( $url ), esc_html( $title ) )
+            : esc_html( $title );
+        /* translators: %s: the title of the post this one was copied from, as a link */
+        $states['rb_duplicate_post_copy_of'] = sprintf( __( 'Copy of %s', 'duplicate-post-rb' ), $label );
+        return $states;
     }
 
     /**
      * Adds the meta box to post edit screen.
      */
-    public static function add_meta_box() {
+    public static function add_meta_box( $current_type = '', $post = null ) {
+        if ( ! $post instanceof \WP_Post || empty( get_post_meta( $post->ID, Constants::HISTORY_META_KEY, true ) ) ) {
+            return;
+        }
         $post_types = get_post_types( array( 'public' => true ) );
         
         foreach ( $post_types as $post_type ) {
@@ -165,6 +194,7 @@ class HistoryMetaBox {
             return '';
         }
         $blog_details = get_blog_details( $blog_id );
+        /* translators: %d: the ID of a site in the network */
         return $blog_details ? $blog_details->blogname : sprintf( __( 'Site %d', 'duplicate-post-rb' ), $blog_id );
     }
 }

@@ -1,9 +1,9 @@
 === Duplicate Post - duplicate pages, copy content, clone posts ===
 Contributors: rbplugins
 Tags: duplicate posts, duplicate pages, copy post, copy pages, duplicate post
-Requires at least: 3.1
+Requires at least: 5.0
 Tested up to: 7.1
-Stable tag: 1.6.8
+Stable tag: 2.5.0
 License: GPLv2 or later
 
 Duplicate Post RB makes it easy to duplicate posts, pages and custom post types. Create duplicate posts, clone content, automate duplication
@@ -16,6 +16,13 @@ Duplicate Post RB makes it easy to duplicate posts, pages and custom post types.
 Whether you want to **copy posts**, **clone pages**, or **generate multiple content variations**, this plugin provides flexible and professional tools for content duplication.
 
 Unlike basic duplicate post tools, Duplicate Post RB gives you full control over what exactly gets copied, including content, title, slug, featured image, taxonomies, templates, metadata, and more. This makes it ideal for websites with structured content, landing pages, learning systems, and large editorial workflows.
+
+= New in Duplicate Post RB 2 =
+
+* **Assistant** — every profile can adapt its copies step by step: replace a city or a product name, move links to another domain, set the status; it asks questions when you copy ("Which city?") and shows a preview on a real post
+* **Rewrite & Republish** — edit a draft of a live post and publish it into the original: same address, date and comments; SEO fields, custom fields and WooCommerce data come along
+* **Cleanup** — find duplicate posts and remove them, with 301 redirects to the post that stays (with our free RB Links Redirection)
+* **PRO:** WordPress Multisite — copy posts to any site of your network, AI rewrite, translation and SEO texts (Claude, ChatGPT, Grok), Auto copy on publish, automatic cleanup, pages ↔ posts, WooCommerce, Elementor, WPBakery and Jetpack data
 
 The new version introduces advanced duplication logic with configuration profiles and [WP-CLI support](https://rbplugins.com/docs/duplicate-post-rb/wp-cli-duplication/) - making Duplicate Post RB suitable for editors, agencies, and developers who need full control over how content is copied.
 
@@ -71,7 +78,7 @@ These improvements make post duplication faster, clearer, and more transparent, 
 - **Quick Copy Popup** with options:
   - number of copies
   - profile selection
-  - site selection (multisite support coming soon)
+  - site selection: copy to another site of a WordPress Multisite network (PRO)
 - **WP-CLI support** for automation and bulk duplication
 - Clean UI, lightweight code, compatible with Classic and Gutenberg editors
 - All post meta duplication
@@ -167,6 +174,7 @@ Duplicate Post RB includes additional features designed for advanced workflows a
 
 Key extended capabilities include:
 
+• **WordPress Multisite:** copy posts, pages and products to any site of your network — from the copy dialog, with WP-CLI (`--target-blog`) or automatically with Auto copy. Categories and tags are made on the target site, images get their own files there (also the images in the text, with the text pointing at them), and Yoast SEO and Rank Math data come along with the primary category set to the target site's own term. People see only the sites where they may publish
 • Custom duplication buttons per profile for one-click actions  
 • Option to duplicate content without confirmation dialogs  
 • Full integration with Advanced Custom Fields (ACF), including fields, field groups, post types, and taxonomies  
@@ -231,8 +239,8 @@ Everything you need:
 - Navigation menu  
 - All Post Meta
 
-= Does the plugin support multisite? =
-Basic support is available. Advanced multisite duplication (cross-site copying) is coming soon.
+= Does the plugin support WordPress Multisite? =
+Yes. On a network every site copies its own posts as on a single site. With PRO you can also copy posts from one site of the network to another: the copy dialog gets a Site choice, WP-CLI takes `--target-blog`, and Auto copy rules can copy new posts to another site. Settings → Multisite decides whether images get their own files on the target site (the default) or keep pointing at the source site's media library. Users see only the sites where they may publish; super admins see every site.
 
 = Can I change how duplicated posts are named? =
 Yes. Use prefix, suffix and placeholders:
@@ -251,6 +259,70 @@ Yes. It's optimized for speed and does not affect admin performance.
 6. WP-CLI Output – duplicating post IDs through command line.
 
 == Changelog ==
+
+= 2.5.0 (27-10-2026) =
+* PRO: WordPress Multisite — copies between the sites of a network, from the copy dialog, WP-CLI (--target-blog) and Auto copy; Settings → Multisite
+* New: images placed in the text of a copy on another site are copied there too and the text points at them (Settings → Multisite → Images in the text)
+* New: a welcome screen after install and after this update: what is new, and RB Links Redirection installed in one click
+* New: Integrations is a view of its own next to Settings; Cleanup can find posts with the same content
+* Improved: the copy dialog lists what PRO adds, and its Copy button stays in view in the expanded dialog
+* Improved: in the block editor, Copy saves the post first; when a post can't be copied, the dialog says why
+* Improved: redirects for removed duplicates are now opt-in, in Find duplicates and in Auto cleanup
+* Improved: profile names up to 40 letters, digits and spaces; title tags accept spaces and any letter case ([ CurrentDate ], [counter]); no more than 100 copies at a time
+* Security: copies follow the user's rights on the site they are made on: a copy goes live only for a user who may publish there, keeps another author only for a user who may edit others' posts, and a profile's source post must be one the user may edit or read in full
+* Security: on a network, the posts to copy are checked on the site they come from, with the user's role there
+* Security: Assistant steps may change protected custom fields only when saved by an administrator; an AI answer is never taken as trusted markup
+* Security: Rewrite & Republish goes into its original only for a user who may republish it, also on schedule; a copied rewrite mark makes no rewrite
+* Fixed: a page with its children copied to another site of a network: the children are made there, under the page's copy; a post among its own descendants is not copied again
+* Fixed: copies made without a user (Auto copy, WP-CLI) and scheduled Rewrite & Republish lost the original's embeds, forms and scripts; on a network, Auto copy and WP-CLI could not copy between sites
+* Fixed: uninstall removes the plugin's options and scheduled events on every site of a network; deleting the PRO key keeps its settings for a reinstall
+* Fixed: Yoast SEO data was not copied (Yoast was taken as inactive), and its switch in Settings → Integrations was not used
+* Fixed: the primary category of Yoast SEO and Rank Math on a copy whose categories are copied, and on another site of a network
+* Fixed: the copy history of a copy on another site of a network was written on the wrong site
+* Fixed: media "link" mode across sites could set an unrelated post as the copy's featured image
+* Fixed: Jetpack's "already shared" marks were carried over to copies made with All post meta
+* Fixed: an empty "RB Plugins" menu item for super admins of a network
+* Fixed: PHP 8.4 deprecation notices
+
+= 2.4.0 (11-10-2026) =
+* PRO: AI in the Assistant — rewrite, translate, and write the excerpt, SEO title or SEO description of every copy with Claude, ChatGPT or Grok and your own API key (stored encrypted, never sent to the browser). Templates: "A unique text with AI", "A translation draft with AI"
+* PRO: Auto copy — rules that copy a post as soon as it is first published, with a profile, to this site or another site of the network; made in the background
+* New: Settings → AI and Settings → Auto copy
+* Fixed: since 2.3.0 the Copy button and Template source tabs of a profile showed the wrong options
+* Improved: settings screen - Select all and Clear for the elements to copy, custom fields in their own group, the "AI Assistant" tab with tips, the PRO and RoboSoft panel above the settings can be collapsed
+
+= 2.3.0 (11-10-2026) =
+* New: the Assistant — every profile can run steps on its copies: replace a text (exactly, any letter case or whole words) in the title, content and excerpt, change link addresses, set the status. Ready-made templates: a landing page for another city, a copy for another domain, a product variant, a clean draft
+* New: the Assistant asks questions when you copy ("Which city?") and uses the answers as {name} in its steps; {title}, {date} and {site} are always there
+* New: "Try it on a post" shows what a copy would look like — nothing is copied
+* New: WP-CLI --answer=name=value for the Assistant's questions
+* PRO: Assistant steps for patterns (regular expressions), custom fields (set, replace, remove) and terms (add, remove, set) (Duplicate Post RB — Key 2.3.0)
+* Fixed: the result of a cleanup stayed hidden when no duplicates were left
+
+= 2.2.0 (11-10-2026) =
+* New: works with our free RB Links Redirection plugin — a new Cleanup tab lists the redirects made for removed duplicates
+* PRO: Cleanup with redirects — every removed published duplicate redirects (301) to the post that stays, so links and search results keep working; for the manual cleanup and the auto cleanup (Duplicate Post RB — Key 2.2.0)
+* Dev: action rb_duplicate_post_before_remove
+
+= 2.1.0 (11-10-2026) =
+* New: Rewrite & Republish — edit a draft of a live post and publish it into the original: same address, date, author and comments. Works in the block editor, the classic editor and on schedule. SEO fields (Yoast SEO, Rank Math, All in One SEO), custom fields and, with PRO, WooCommerce data come back into the original
+* New: Cleanup — find posts with the same title (or title and content), oldest first, and move the extra ones to the trash or delete them; every removal is in the log
+* PRO: Auto cleanup — remove duplicate drafts on a schedule, per content type (Duplicate Post RB — Key 2.1.0)
+* PRO: "Copy as" — copy a page as a post, or a post as a page
+* PRO: WooCommerce products can be rewritten and republished: the product keeps its SKU, sales and variation IDs, prices and text are updated
+* Improved: the log names a removed post by its title
+
+= 2.0.0 (10-10-2026) =
+* New: settings screen rebuilt without React — Copy profiles and Settings views, hints, FAQ, faster to load
+* New: Copy dialog rebuilt — "Advanced settings" chooses the elements of one copy without changing the profile
+* New: "After copying" profile option — stay in the list, open the copy for editing, or choose each time
+* New: copy the comments of a post, with their replies (Elements to copy → Comments)
+* New: "Copy of <original>" next to copies in the posts lists; the History box shows only on copies
+* New: Log tab — filter copies by action and date, export to CSV, clear the log
+* New: WP-CLI tab with ready-to-use commands
+* PRO: WooCommerce products (prices, stock, variations, unique SKU), Elementor, WPBakery and Jetpack data in copies (Duplicate Post RB — Key 2.0.0)
+* Fixed: copied custom fields with backslashes (JSON layouts, escaped text) lost their backslashes
+* Dev: filter rb_duplicate_post_after_copy_transformers for extra copy steps
 
 = 1.6.8 (25-09-2026) =
 - Improved: SEO fields are now copied when duplicating posts
@@ -353,7 +425,5 @@ Yes. It's optimized for speed and does not affect admin performance.
 
 == Upgrade Notice ==
 
-= 1.6.8 (25-09-2026) =
-- Improved: SEO fields are now copied when duplicating posts
-- New: Added support for Yoast SEO
-- Improved: Added compatibility with WordPress 7.1
+= 2.5.0 =
+The biggest update since 1.0: a faster settings screen, Rewrite & Republish, duplicate Cleanup, the Assistant for copies, copying of comments, Multisite and security fixes. Your profiles, settings and copy history are kept.

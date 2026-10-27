@@ -4,7 +4,7 @@
 *      Version: 1.6.8
 *      By RbPlugin
 *
-*      Contact: https://robosoft.co 
+*      Contact: https://rbplugins.com 
 *      Created: 2025
 *      Licensed under the GPLv3 license - http://www.gnu.org/licenses/gpl-3.0.html
  */
@@ -17,6 +17,7 @@ use rbDuplicatePost\Constants;
 use rbDuplicatePost\ProfileOptionsConfig;
 use rbDuplicatePost\IDsParser;
 use rbDuplicatePost\Helpers\PostTypes;
+use rbDuplicatePost\Helpers\Multisite;
 
 /**
  * REST API Validation Options controller class.
@@ -75,19 +76,44 @@ class Validations {
 
         $ids = IDsParser::parse( $param );
 
-        $types = array_keys( PostTypes::get_all_types(  ) );
+        // the posts are looked up on the site they are copied from; a site the user
+        // is not a member of is not looked into at all (it would tell which IDs exist there)
+        $source_blog_id = $request instanceof \WP_REST_Request ? absint( $request->get_param( 'source_blog_id' ) ) : 0;
+        if ( $source_blog_id && ! Multisite::can_user_copy_from_blog( $source_blog_id ) ) {
+            return false;
+        }
 
-        $args = array(
-            'fields'      => 'ids',
-            'include'     => $ids,
-            'post_status' => Constants::ALLOWED_POST_STATUSES,
-            'post_type' =>  $types,
-            'ignore_sticky_posts'=>false
-        );
-        $posts = get_posts( $args );
+        $posts = Multisite::with_blog( $source_blog_id, function () use ( $ids ) {
+            return get_posts( array(
+                'fields'      => 'ids',
+                'include'     => $ids,
+                'post_status' => Constants::ALLOWED_POST_STATUSES,
+                'post_type' =>  array_keys( PostTypes::get_all_types(  ) ),
+                'ignore_sticky_posts'=>false
+            ) );
+        } );
 
         if (  count( $posts ) != count( $ids ) ) {
-            return false;
+            // say why: an unsaved post (auto-draft), a status or a post type the plugin does not copy
+            // (looked up on the same source site as the posts above)
+            $missing = array_diff( $ids, array_map( 'absint', $posts ) );
+            $reason  = Multisite::with_blog( $source_blog_id, function () use ( $missing ) {
+                $types = array_keys( PostTypes::get_all_types() );
+                foreach ( $missing as $id ) {
+                    $status = get_post_status( $id );
+                    if ( $status === 'auto-draft' ) {
+                        return __( 'Save the post first: a new post can be copied once it is saved.', 'duplicate-post-rb' );
+                    }
+                    if ( $status === 'trash' ) {
+                        return __( 'A post in the trash cannot be copied. Restore it first.', 'duplicate-post-rb' );
+                    }
+                    if ( $status && ! in_array( get_post_type( $id ), $types, true ) ) {
+                        return __( 'This post type is not copied. Turn it on in Settings → Content types.', 'duplicate-post-rb' );
+                    }
+                }
+                return __( 'The post to copy was not found.', 'duplicate-post-rb' );
+            } );
+            return new \WP_Error( 'rest_invalid_param', $reason, array( 'status' => 400 ) );
         }
 
         foreach ( $posts as $post ) {
@@ -114,8 +140,9 @@ class Validations {
 
     public static function validate_profile_title( $param, $request, $key ) {
 
-        if ( ! is_string( $param ) || trim( $param ) === '' ) {
-            return false;
+        // letters or digits: a name of signs only would be empty once cleaned
+        if ( ! is_string( $param ) || \rbDuplicatePost\Profile\Profile::clean_title( $param ) === '' ) {
+            return new \WP_Error( 'rest_invalid_param', __( 'A profile name needs letters or digits (up to 40).', 'duplicate-post-rb' ), array( 'status' => 400 ) );
         }
 
         return true;
@@ -123,6 +150,14 @@ class Validations {
 
 
     
+    /** the Assistant's scenario of a profile */
+    public static function validate_scenario_field($value, $option)
+    {
+        $scenario = \rbDuplicatePost\Scenario\Scenario::sanitize($value);
+        $error    = \rbDuplicatePost\Scenario\Scenario::check_permissions($scenario, $option['value'] ?? null);
+        return $error ? $error : $scenario;
+    }
+
     public static function validate_multiselect_field($values, $option)
     {
 
@@ -202,6 +237,15 @@ class Validations {
             case 'multiline_string':
                 $value = self::sanitize_multiline_text($value);
                 break;
+
+            case 'color':
+                $value = self::sanitize_color($value, $option['default'] ?? '');
+                break;
+
+            // stored as a string of digits, as the option always was ('0': none)
+            case 'post_id':
+                $value = is_scalar($value) && preg_match('/^\d+$/', trim((string) $value)) ? (string) absint($value) : '0';
+                break;
             case 'string':
             default:
                 $value = sanitize_text_field($value);
@@ -215,6 +259,22 @@ class Validations {
         }
 
         return $value;
+    }
+
+    /**
+     * A CSS colour as the colour picker sends it (#hex, rgb(), rgba(), hsl(), hsla())
+     * or a colour name; anything else - more CSS after the colour - gives the default.
+     */
+    private static function sanitize_color($input, $default) {
+        $input = is_string($input) ? trim($input) : '';
+
+        if (preg_match('/^#[0-9a-f]{3,8}$/i', $input)
+            || preg_match('/^(rgb|hsl)a?\(\s*[0-9.%,\s\/]+\)$/i', $input)
+            || preg_match('/^[a-z]{3,30}$/i', $input)) {
+            return $input;
+        }
+
+        return $default;
     }
 
     private static function sanitize_multiline_text($input) {
