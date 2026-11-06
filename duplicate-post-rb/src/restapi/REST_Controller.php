@@ -44,6 +44,8 @@ abstract class REST_Controller extends \WP_REST_Controller {
         $message = 'Invalid request',
         $status = 400
     ) {
+        // some callers give WP_Error's own array( 'status' => 404 )
+        $status = (int) ( is_array( $status ) ? ( $status['status'] ?? 400 ) : $status );
         $data             = array();
         $data[ 'result' ] = Constants::FAIL;
         $data[ 'status' ] = $status;

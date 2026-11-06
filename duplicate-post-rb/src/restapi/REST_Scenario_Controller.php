@@ -57,6 +57,7 @@ class REST_Scenario_Controller extends REST_Controller {
 			}
 		}
 		$env   = Scenario::env( $scenario, $post, $answers );
+		Scenario::take_warnings();
 		$after = Scenario::run_phase( 'data', $scenario, $post, $env );
 
 		$fields = array();
@@ -68,8 +69,13 @@ class REST_Scenario_Controller extends REST_Controller {
 			);
 		}
 
-		// the steps on the copy itself (custom fields, terms) describe what they would do
+		// a step that failed looks like one that changed nothing: it says so
 		$notes = array();
+		foreach ( Scenario::take_warnings() as $warning ) {
+			$notes[] = array( 'type' => 'warning', 'text' => $warning, 'skipped' => true );
+		}
+
+		// the steps on the copy itself (custom fields, terms) describe what they would do
 		$types = Scenario::step_types();
 		foreach ( $scenario['steps'] as $step ) {
 			$type = $types[ $step['type'] ] ?? null;
@@ -81,7 +87,7 @@ class REST_Scenario_Controller extends REST_Controller {
 				continue;
 			}
 			if ( $type['phase'] === 'after' && isset( $type['describe'] ) ) {
-				$notes[] = array( 'type' => $step['type'], 'text' => (string) call_user_func( $type['describe'], $step, $post, $env ), 'skipped' => false );
+				$notes[] = array( 'type' => $step['type'], 'text' => (string) call_user_func( $type['describe'], $step, $after, $env ), 'skipped' => false );
 			}
 			if ( $step['type'] === 'replace_text' && ( $step['mode'] ?? '' ) === 'regex' && ! Scenario::regex_allowed() ) {
 				$notes[] = array( 'type' => $step['type'], 'text' => __( 'Patterns (regular expressions) need Duplicate Post RB PRO: this step is skipped.', 'duplicate-post-rb' ), 'skipped' => true );

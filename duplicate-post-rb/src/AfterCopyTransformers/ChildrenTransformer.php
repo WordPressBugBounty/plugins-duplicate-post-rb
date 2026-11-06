@@ -39,10 +39,13 @@ class ChildrenTransformer extends AbstractPostAfterCopyTransformer {
         // Copy children using the new copier
         $result = PostChildrenCopier::copy_children( $operation_context, $profile_id );
 
-        // Optionally handle result (logging, errors, etc.)
-        //if ( ! $result['success'] ) {
-            // Handle failure if needed
-        //}
+        if ( ! empty( $result['failed'] ) ) {
+            \rbDuplicatePost\Scenario\Scenario::warn( sprintf(
+                /* translators: %d: how many */
+                _n( '%d child post was not copied.', '%d child posts were not copied.', (int) $result['failed'], 'duplicate-post-rb' ),
+                (int) $result['failed']
+            ) );
+        }
     }
 
 }

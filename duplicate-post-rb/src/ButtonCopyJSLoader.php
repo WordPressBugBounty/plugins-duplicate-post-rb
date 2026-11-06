@@ -100,6 +100,8 @@ class ButtonCopyJSLoader {
                 'nonce'     => wp_create_nonce( 'wp_rest' ),
                 'pro'       => ProCheck::isActive(),
                 'buyUrl'    => 'https://rbplugins.com/wordpress-plugins/duplicate-post-rb/?pk_campaign=wp_dp_dialog#pricing',
+                // the dialog's gear, for users who may open the settings
+                'settingsUrl' => User::canManageOptions() ? esc_url_raw( Utils::getSettingsPageUrl() ) : '',
                 'profiles'  => self::profiles(),
                 'multisite' => $multisite,
                 'isMultisite' => is_multisite(),

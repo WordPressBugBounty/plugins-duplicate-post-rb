@@ -142,6 +142,14 @@ class PostChildrenCopier {
         // the child comes from the parent's site and goes where the parent's copy is
         // (an ID means another post on each site of a network); one child that fails
         // is counted, the others and the parent's copy go on
+        // A parent the user may edit opens no door to the rest: a child is copied only for
+        // someone who may read it. Without a user (cron, WP-CLI) the settings decide.
+        if ( is_user_logged_in() && ! Multisite::with_blog( $source->get_blog_id(), function () use ( $child_id ) {
+            return current_user_can( 'read_post', (int) $child_id );
+        } ) ) {
+            return false;
+        }
+
         try {
             $new_id = DuplicatorFactory::make( 'post' )->duplicate(
                 (int) $child_id,

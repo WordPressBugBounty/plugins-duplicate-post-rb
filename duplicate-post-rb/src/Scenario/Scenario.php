@@ -36,6 +36,21 @@ class Scenario {
     /** the answers of the copy dialog for this request: {name: value} */
     private static $answers = array();
 
+    /** what went wrong in the steps of the copy being made */
+    private static $warnings = array();
+
+    /** a step could not do its work: whoever copies is told */
+    public static function warn( string $message ): void {
+        self::$warnings[] = $message;
+    }
+
+    /** @return string[] the warnings so far, each once; the list starts over */
+    public static function take_warnings(): array {
+        $warnings       = array_values( array_unique( self::$warnings ) );
+        self::$warnings = array();
+        return $warnings;
+    }
+
     /** set by the copy route from the dialog's answers */
     public static function set_answers( array $answers ): void {
         $clean = array();
@@ -183,6 +198,28 @@ class Scenario {
         return $step;
     }
 
+    /**
+     * How many copies one request from the browser may make with these options; 0: as many
+     * as it likes. Steps marked "slow" (AI) wait for an outside service for every copy, all
+     * within that one request, and hosts cut a long request off with copies half made.
+     */
+    public static function copies_per_request( array $options ): int {
+        $scenario = self::of_options( $options );
+        if ( ! $scenario ) {
+            return 0;
+        }
+        $types = self::step_types();
+        foreach ( $scenario['steps'] as $step ) {
+            if ( ! empty( $step['on'] ) && ! empty( $types[ $step['type'] ]['slow'] ) ) {
+                /**
+                 * Copies per request with AI steps. WP-CLI and Auto copy have no such limit.
+                 */
+                return max( 1, (int) apply_filters( 'rb_duplicate_post_slow_copies_per_request', 5 ) );
+            }
+        }
+        return 0;
+    }
+
     /** the scenario of a copy's options, or null when there is none to run */
     public static function of_options( array $options ): ?array {
         $value = $options['scenario']['value'] ?? null;
@@ -229,14 +266,12 @@ class Scenario {
             return $data;
         }
         $data = (array) $data;
-        // the content transformer slashes the content for wp_insert_post(): the steps see it as written
-        $slashed = isset( $data['post_content'] );
-        if ( $slashed ) {
-            $data['post_content'] = stripslashes( (string) $data['post_content'] );
-        }
-        $data = self::run_phase( 'data', $scenario, $data, self::env( $scenario, $data ) );
-        if ( $slashed ) {
-            $data['post_content'] = addslashes( (string) $data['post_content'] );
+        $warned = count( self::$warnings );
+        $data   = self::run_phase( 'data', $scenario, $data, self::env( $scenario, $data ) );
+        // a step left the text unfinished: it does not go live as it is
+        if ( count( self::$warnings ) > $warned && in_array( $data['post_status'] ?? '', array( 'publish', 'future' ), true ) ) {
+            $data['post_status'] = 'draft';
+            self::warn( __( 'A step of the Assistant failed, so the copy was kept as a draft.', 'duplicate-post-rb' ) );
         }
         return $data;
     }
@@ -323,9 +358,11 @@ class Scenario {
                 $pattern = '/' . preg_quote( $find, '/' ) . '/u';
         }
         $is_regex = $mode === 'regex';
-        $apply    = function ( $text ) use ( $pattern, $replace, $is_regex ) {
+        // $with: the replacement as it is written where it goes (an attribute, a block's JSON)
+        $apply    = function ( $text, $with = null ) use ( $pattern, $replace, $is_regex ) {
+            $with = $with === null ? $replace : $with;
             // phpcs:ignore WordPress.PHP.NoSilencedErrors.Discouraged
-            $out = $is_regex ? @preg_replace( $pattern, $replace, $text ) : preg_replace_callback( $pattern, function () use ( $replace ) { return $replace; }, $text );
+            $out = $is_regex ? @preg_replace( $pattern, $with, $text ) : preg_replace_callback( $pattern, function () use ( $with ) { return $with; }, $text );
             return $out === null ? $text : $out;
         };
         if ( ! $markup ) {
@@ -342,17 +379,19 @@ class Scenario {
                 continue;
             }
             // only what people read: alt texts, tooltips, labels — never class, id, style or addresses
-            $parts[ $i ] = preg_replace_callback( '/\b([a-zA-Z][-a-zA-Z0-9_:]*)(\s*=\s*)("[^"]*"|\'[^\']*\')/', function ( $m ) use ( $apply ) {
+            $parts[ $i ] = preg_replace_callback( '/\b([a-zA-Z][-a-zA-Z0-9_:]*)(\s*=\s*)("[^"]*"|\'[^\']*\')/', function ( $m ) use ( $apply, $replace ) {
                 if ( ! in_array( strtolower( $m[1] ), array( 'alt', 'title', 'aria-label', 'placeholder', 'value', 'content', 'label' ), true ) ) {
                     return $m[0];
                 }
                 $q = $m[3][0];
-                return $m[1] . $m[2] . $q . $apply( substr( $m[3], 1, -1 ) ) . $q;
+                return $m[1] . $m[2] . $q . $apply( substr( $m[3], 1, -1 ), htmlspecialchars( $replace, ENT_QUOTES, 'UTF-8', false ) ) . $q;
             }, $part );
             // block attributes in a block comment: <!-- wp:x {"text":"..."} -->
             if ( strpos( $part, '<!--' ) === 0 ) {
-                $parts[ $i ] = preg_replace_callback( '/"(content|text|alt|title|caption|label|placeholder|value|heading|description)"(\s*:\s*)"((?:[^"\\\\]|\\\\.)*)"/', function ( $m ) use ( $apply ) {
-                    return '"' . $m[1] . '"' . $m[2] . '"' . $apply( $m[3] ) . '"';
+                // a JSON string in a comment: quotes escaped, nothing that could end the comment
+                $json = strtr( substr( (string) wp_json_encode( $replace, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ), 1, -1 ), array( '--' => '\\u002d\\u002d', '<' => '\\u003c', '>' => '\\u003e' ) );
+                $parts[ $i ] = preg_replace_callback( '/"(content|text|alt|title|caption|label|placeholder|value|heading|description)"(\s*:\s*)"((?:[^"\\\\]|\\\\.)*)"/', function ( $m ) use ( $apply, $json ) {
+                    return '"' . $m[1] . '"' . $m[2] . '"' . $apply( $m[3], $json ) . '"';
                 }, $parts[ $i ] );
             }
         }

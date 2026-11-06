@@ -101,6 +101,15 @@ class ButtonBulkCopy
 
         $results    = array();
 
+        // the same limit as the copy dialog; the posts past it are reported as not copied
+        $limit = \rbDuplicatePost\Scenario\Scenario::copies_per_request( ( new \rbDuplicatePost\OptionsManager() )->getOptions( (int) $profile_id ) );
+        if ( $limit && count( $ids ) > $limit ) {
+            foreach ( array_slice( $ids, $limit ) as $id ) {
+                $results[] = array( 'id' => $id, 'duplicate_id' => false, 'success' => false );
+            }
+            $ids = array_slice( $ids, 0, $limit );
+        }
+
         foreach ( $ids as $id ) {
             try {
                 // the ids come from the submitted form: each must be a post the user may edit

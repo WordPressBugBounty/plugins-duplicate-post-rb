@@ -97,8 +97,6 @@ class PostProcessor {
             new RankMathTransformer(),
             new AllInOneSeoTransformer(),
             new CommentsTransformer(),
-            /* the Assistant's steps on the copy, after everything is copied */
-            new ScenarioTransformer(),
         );
 
         /**
@@ -112,6 +110,9 @@ class PostProcessor {
                 $transformers[] = $transformer;
             }
         }
+
+        /* the Assistant's steps on the copy, after everything is copied, the add-ons' data too */
+        $transformers[] = new ScenarioTransformer();
 
         /* Important this is last */
         $transformers[] = new HistoryTransformer();
@@ -206,6 +207,7 @@ class PostProcessor {
         if ( $source_blog_id !== $target_blog_id ) {
             $modified_data['post_parent'] = 0;
         }
+        $this->checkMayCreate( $modified_data, $target_blog_id );
         $new_post_id   = $this->createNewPost( $modified_data, $target_blog_id );
         
         $transformer_context_after_create = TransformerContext::from_blog_ids(
@@ -277,6 +279,24 @@ class PostProcessor {
             }
         }
         return $map;
+    }
+
+    /**
+     * Editing the source is not the right to make a new post of the copy's type, on the
+     * site it is made on. Without a user (cron, WP-CLI) the settings decide.
+     */
+    private function checkMayCreate( array $post_data, int $target_blog_id ): void {
+        if ( ! is_user_logged_in() ) {
+            return;
+        }
+        $type = (string) ( $post_data['post_type'] ?? 'post' );
+        $can  = Multisite::with_blog( $target_blog_id, function () use ( $type ) {
+            $object = get_post_type_object( $type );
+            return $object && current_user_can( $object->cap->create_posts );
+        } );
+        if ( ! $can ) {
+            throw new \RuntimeException( 'You are not allowed to create this type of content.' );
+        }
     }
 
     /**
@@ -367,7 +387,8 @@ class PostProcessor {
             }
         }
 
-        $new_post_id = wp_insert_post( $post_data, true );
+        // the fields are as they are in the source; WordPress takes them slashed
+        $new_post_id = wp_insert_post( wp_slash( $post_data ), true );
 
         if ( $switched ) {
             restore_current_blog();

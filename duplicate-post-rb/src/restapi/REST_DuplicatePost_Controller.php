@@ -171,6 +171,7 @@ class REST_DuplicatePost_Controller extends REST_Controller {
 
         try {
             $target_blog_id = absint( $request->get_param( 'target_blog_id' ) );
+            \rbDuplicatePost\Scenario\Scenario::take_warnings();
             $ids = $duplicator->create_duplicate( $profile_id, $target_blog_id );
             
             if( is_array($ids) && isset($ids['source_id']) && isset($ids['new_id']) ){
@@ -180,6 +181,7 @@ class REST_DuplicatePost_Controller extends REST_Controller {
                  $results[] = array(
                     'id'    => $id,
                     'duplicate_id'=> $new_id,
+                    'warnings' => \rbDuplicatePost\Scenario\Scenario::take_warnings(),
                     'edit_url' => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? (string) get_edit_post_link( $new_id, 'raw' ) : '',
                     'title'    => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? get_the_title( $new_id ) : '',
                     'success' => true,
@@ -278,6 +280,20 @@ class REST_DuplicatePost_Controller extends REST_Controller {
 
         $copies = max( 1, absint( $request->get_param( 'copies' ) ) );
 
+        // refused before the first copy: a run cut off half way is worse than a smaller one
+        $limit = \rbDuplicatePost\Scenario\Scenario::copies_per_request( ( new \rbDuplicatePost\OptionsManager() )->getOptions( $profile_id ) );
+        if ( $limit && count( $ids ) * $copies > $limit ) {
+            if ( $override_filter ) {
+                remove_filter( 'rb_duplicate_post_copy_options', $override_filter );
+            }
+            return self::rest_response_error(
+                'too_many_copies',
+                /* translators: %d: how many copies */
+                sprintf( __( 'With AI steps, up to %d copies at a time: each one waits for the AI provider. Make the rest in the next run.', 'duplicate-post-rb' ), $limit ),
+                400
+            );
+        }
+
         $no_refresh = $request->get_param( 'no_refresh' ) ? 1 : 0 ;
 
         // the answers to the Assistant's questions, from the copy dialog
@@ -305,10 +321,12 @@ class REST_DuplicatePost_Controller extends REST_Controller {
 
                     $target_blog_id = absint( $request->get_param( 'target_blog_id' ) );
                     $source_blog_id = absint( $request->get_param( 'source_blog_id' ) );
+                    \rbDuplicatePost\Scenario\Scenario::take_warnings();
                     $newId = $duplicator->duplicate( $id, $profile_id, $target_blog_id, $source_blog_id );
                     $results[] = array(
                         'id'    => $id,
                         'duplicate_id'=> $newId,
+                        'warnings' => \rbDuplicatePost\Scenario\Scenario::take_warnings(),
                         'edit_url' => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? (string) get_edit_post_link( $newId, 'raw' ) : '',
                         'title'    => ( ! $target_blog_id || $target_blog_id === get_current_blog_id() ) ? get_the_title( $newId ) : '',
                         'target_blog_id' => $target_blog_id ? $target_blog_id : get_current_blog_id(),

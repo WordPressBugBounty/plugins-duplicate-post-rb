@@ -179,7 +179,11 @@ class Republisher {
             'comment_status' => $rewrite->comment_status,
             'ping_status'    => $rewrite->ping_status,
         );
-        wp_update_post( wp_slash( $update ) );
+        $updated = wp_update_post( wp_slash( $update ), true );
+        if ( is_wp_error( $updated ) || ! $updated ) {
+            // nothing moved yet: the rewrite stays, with all its work, for another try
+            throw new \RuntimeException( 'The original could not be updated.' );
+        }
 
         // 2. terms, every taxonomy of the type: emptied ones are emptied on the original too
         foreach ( get_object_taxonomies( $original->post_type ) as $taxonomy ) {
@@ -187,8 +191,8 @@ class Republisher {
                 continue;
             }
             $ids = wp_get_object_terms( $rewrite_id, $taxonomy, array( 'fields' => 'ids' ) );
-            if ( ! is_wp_error( $ids ) ) {
-                wp_set_object_terms( $original_id, array_map( 'intval', $ids ), $taxonomy );
+            if ( ! is_wp_error( $ids ) && is_wp_error( wp_set_object_terms( $original_id, array_map( 'intval', $ids ), $taxonomy ) ) ) {
+                throw new \RuntimeException( 'The terms of the original could not be updated.' );
             }
         }
 

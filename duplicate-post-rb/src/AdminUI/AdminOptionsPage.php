@@ -159,12 +159,17 @@
             $custom_types = PostTypes::get_all_types_with_labels();
             unset( $custom_types['post'], $custom_types['page'] );
 
+            // the Copy dialog's gear opens the profile chosen there
+            // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- reads which profile to show, changes nothing
+            $asked_profile = isset( $_GET['profile'] ) ? absint( wp_unslash( $_GET['profile'] ) ) : 0;
+            $profile_id    = $asked_profile && Profile::isProfileExists( $asked_profile ) ? $asked_profile : (int) Profile::getLastViewedProfile();
+
             wp_localize_script( $handle, 'RBDuplicatePostAdmin', array(
                 'restUrl'     => esc_url_raw( rest_url( 'rb_duplicate_post/v1/' ) ),
                 'nonce'       => wp_create_nonce( 'wp_rest' ),
                 'pro'         => ProCheck::isActive(),
                 'version'     => RB_DUPLICATE_POST_VERSION,
-                'profileId'   => (int) Profile::getLastViewedProfile(),
+                'profileId'   => $profile_id,
                 'isMultisite' => is_multisite(),
                 'customTypes' => $custom_types,
                 // for the Auto copy rules: "posts in this category"

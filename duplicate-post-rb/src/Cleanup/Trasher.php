@@ -61,6 +61,13 @@ class Trasher {
             $result = $permanently ? wp_delete_post( $id, true ) : wp_trash_post( $id );
             if ( $result ) {
                 $done[] = $id;
+                /**
+                 * A post is gone. What depends on that (a redirect) is done here, not before it.
+                 *
+                 * @param int $id
+                 */
+                // phpcs:ignore WordPress.NamingConventions.PrefixAllGlobals.NonPrefixedHooknameFound -- rb_duplicate_post_ is this plugin's prefix; Plugin Check only guesses rbDuplicatePost from the namespace
+                do_action( 'rb_duplicate_post_removed', $id );
                 Logger::add( $permanently ? Actions::DELETE : Actions::DELETE_TO_TRASH, $id, 0, 0, array( 'title' => $title, 'type' => $post->post_type ) );
             } else {
                 $failed[] = $id;

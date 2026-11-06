@@ -57,7 +57,7 @@ class Commands
      * [--source-blog=<blog_id>]
      * : Multisite: read source posts from this blog ID (default: current blog).
      *
-     * [--answer=<name=value>]
+     * [--answer=<value>]
      * : An answer to a question of the profile's Assistant, e.g. --answer=to=Kazan. Repeat for more;
      * questions not answered take their default.
      *
@@ -114,6 +114,9 @@ class Commands
                     WP_CLI::log("Target blog:{$target_blog_id}");
                 }
                 WP_CLI::success("Duplicated post ID:{$id} → Created post ID:{$newId}");
+                foreach (\rbDuplicatePost\Scenario\Scenario::take_warnings() as $warning) {
+                    WP_CLI::warning($warning);
+                }
             } catch (\Exception $e) {
                 WP_CLI::error("Failed to duplicate post ID:{$id}: " . $e->getMessage());
             }

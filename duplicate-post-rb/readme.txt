@@ -3,7 +3,7 @@ Contributors: rbplugins
 Tags: duplicate posts, duplicate pages, copy post, copy pages, duplicate post
 Requires at least: 5.0
 Tested up to: 7.1
-Stable tag: 2.5.0
+Stable tag: 2.5.1
 License: GPLv2 or later
 
 Duplicate Post RB makes it easy to duplicate posts, pages and custom post types. Create duplicate posts, clone content, automate duplication
@@ -236,7 +236,6 @@ Everything you need:
 - Format  
 - Attachments  
 - Children  
-- Navigation menu  
 - All Post Meta
 
 = Does the plugin support WordPress Multisite? =
@@ -251,14 +250,42 @@ Yes. It's optimized for speed and does not affect admin performance.
 
 == Screenshots ==
 
-1. Elements to Copy – flexible toggles for selecting which post elements will be duplicated.
-2. Profiles List – overview of saved duplication profiles.
-3. Add New Profile – create a custom profile with your preferred settings.
-4. Naming Rules – create naming formats using [Counter], [CurrentDate], [CurrentTime].
-5. Quick Copy popup – choose how many copies to create, select a profile, and duplicate posts or pages instantly.
-6. WP-CLI Output – duplicating post IDs through command line.
+1. Copy profiles: choose exactly what a copy contains — title, content, images, terms, custom fields, comments
+2. Naming rules: a prefix and suffix with [Counter], [CurrentDate] and [CurrentTime], with a live preview
+3. The copy dialog in the posts list: how many copies, which profile, and what this one copy contains
+4. The Assistant: pick what the copies are for — a page for another city, another domain, a product variant — and adjust its questions and steps
+5. Try the Assistant on a real post: see what changes in the title, excerpt, status and content before anything is copied
+6. The Assistant asks its question when you copy — "Which city?" — and puts the answer everywhere it belongs
+7. Rewrite & Republish: edit a draft of a live page; Publish puts the changes into the original, same address
+8. Cleanup: find posts with the same title or content, keep the oldest and redirect the removed ones to it
+9. PRO: AI with your own key — Claude, ChatGPT or Grok, the key stored encrypted on your server
+10. PRO: AI steps in the Assistant — rewrite in other words, write the SEO description, set the status of the copy
+11. PRO: Auto copy — a copy made by a profile the moment a post of a chosen type and category is published
+12. The log: every copy, by whom, from which post — filter by action and date, export to CSV
+13. Integrations: the data of Yoast SEO, Rank Math, All in One SEO, ACF, WooCommerce, Elementor, Jetpack and WPBakery is copied with the post
 
 == Changelog ==
+
+= 2.5.1 (06-11-2026) =
+* Fixed: AI steps with Claude could fail with "an empty answer": the answer was read from its first block, and newer models may start with their thinking
+* Fixed: an AI answer cut off by the length limit no longer replaces the whole text; a refusal is reported as one
+* Fixed: AI steps keep the page as it is: the model gets the words, while tags, links, block marks, shortcodes and embeds stay in the post and come back untouched; an answer that lost a part of the page is refused
+* Fixed: an AI step that fails is shown when you copy (copy dialog, WP-CLI, preview), and a copy a rewrite or translation did not finish stays a draft instead of going live
+* Fixed: the AI preview writes SEO texts and excerpts from the rewritten text, not the original
+* Fixed: SEO texts by AI reach All in One SEO (they went where it does not read them); with no SEO plugin active no paid call is made
+* Improved: up to 5 copies at a time with AI steps, from the copy dialog and the bulk action, so a long run is not cut off half way by the host (filter rb_duplicate_post_slow_copies_per_request; WP-CLI and Auto copy have no limit)
+* Improved: an AI key is not stored on a server without OpenSSL
+* Security: copying a parent no longer copies children the user may not read; a copy needs the right to create its content type, on the site it is made on
+* Fixed: Rewrite & Republish keeps the rewrite when the original could not be updated, instead of reporting success and removing it
+* Fixed: custom fields or child posts that could not be copied are reported, not hidden behind a success
+* Fixed: backslashes in titles, excerpts and post passwords are kept
+* Fixed: a replacement with quotes in the Assistant no longer breaks block data and HTML attributes
+* Fixed: the Assistant's steps on custom fields run after the PRO integrations, which used to undo them (Elementor, WooCommerce)
+* Fixed: Auto copy tries a failed copy again instead of never copying that post, and skips a post taken off publication
+* Fixed: a redirect for a removed duplicate is made only once the duplicate is really gone
+* Fixed: a refused REST request answers with its error status (deleting the Default profile answered 200)
+* Fixed: a profile setting changed while saving stays on the screen as unsaved
+* Removed: the "Navigation menu" and "Link categories" switches, which did nothing, from the settings and the copy dialog
 
 = 2.5.0 (27-10-2026) =
 * PRO: WordPress Multisite — copies between the sites of a network, from the copy dialog, WP-CLI (--target-blog) and Auto copy; Settings → Multisite
@@ -425,5 +452,5 @@ Yes. It's optimized for speed and does not affect admin performance.
 
 == Upgrade Notice ==
 
-= 2.5.0 =
-The biggest update since 1.0: a faster settings screen, Rewrite & Republish, duplicate Cleanup, the Assistant for copies, copying of comments, Multisite and security fixes. Your profiles, settings and copy history are kept.
+= 2.5.1 =
+Security and reliability fixes from a full audit: access rights on copies, AI steps that keep the page intact, backslashes and block data kept. Two switches that did nothing are gone.

@@ -39,5 +39,8 @@ class MetaTransformer extends AbstractPostAfterCopyTransformer {
         }
 
         $result = PostMetaCopier::copy_post_all_meta( $context->to_operation_context() );
+        if ( isset( $result['success'] ) && ! $result['success'] ) {
+            \rbDuplicatePost\Scenario\Scenario::warn( __( 'Some custom fields could not be copied.', 'duplicate-post-rb' ) );
+        }
     }
 }

@@ -33,7 +33,6 @@ class ContentTransformer extends AbstractPostTransformer {
             return $post_data;
         }
 
-        $post_data[ 'post_content' ] = addslashes($post_data[ 'post_content' ]);
         return $post_data;
     }
 }
